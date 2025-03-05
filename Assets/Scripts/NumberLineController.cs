@@ -5,45 +5,55 @@ using TMPro;
 
 public class InfiniteNumberLine : MonoBehaviour
 {
-    public GameObject tickPrefab;
-    public Transform tickParent;
-    public NumberPickerUI numberPicker;
-    public LineRenderer lineRenderer;
-    public float tickSpacing = 1f;
-    public float moveDuration = 1f;
-    public int visibleTickCount = 40;
-    public float maxSpeed = 10f;
+    public GameObject tickPrefab; // Prefab with tick + number
+    public Transform tickParent; // Parent for ticks
+    public NumberPickerUI numberPicker; // UI input
+    public LineRenderer lineRenderer; // Number line
+    public float tickSpacing = 1f; // Distance between ticks
+    public float moveDuration = 1f; // Movement animation
+    public int visibleTickCount = 40; // Number of ticks visible
+    public float maxSpeed = 10f; // Speed limit
 
-    private Queue<GameObject> tickPool = new Queue<GameObject>();
     private List<GameObject> activeTicks = new List<GameObject>();
+    private Dictionary<GameObject, int> tickNumbers = new Dictionary<GameObject, int>();
     private bool isMoving = false;
     private Vector3 startPos, targetPos;
 
     void Start()
     {
-        float startX = -visibleTickCount / 2 * tickSpacing;
+        GenerateTicks();
+        UpdateLineRenderer();
+    }
 
-        for (int i = 0; i < visibleTickCount + 2; i++)
+    void GenerateTicks()
+    {
+        float startX = -visibleTickCount / 2 * tickSpacing;
+        
+        for (int i = 0; i < visibleTickCount; i++)
         {
             GameObject tick = Instantiate(tickPrefab, tickParent);
             tick.SetActive(true);
             float xPos = startX + i * tickSpacing;
             tick.transform.position = new Vector3(xPos, 0, 0);
-            tickPool.Enqueue(tick);
             activeTicks.Add(tick);
-        }
 
-        UpdateLineRenderer();
+            // **Assign a permanent number once and store it**
+            int tickValue = Mathf.RoundToInt(xPos / tickSpacing);
+            tickNumbers[tick] = tickValue;
+
+            // Set the label once
+            UpdateTickLabel(tick);
+        }
     }
 
     public void MoveRight()
     {
-        MoveMarkers(numberPicker.GetFinalNumber()); // Takes the value as positive
+        MoveMarkers(numberPicker.GetFinalNumber());
     }
 
     public void MoveLeft()
     {
-        MoveMarkers(-numberPicker.GetFinalNumber()); // Takes the value as negative
+        MoveMarkers(-numberPicker.GetFinalNumber());
     }
 
     private void MoveMarkers(float moveDistance)
@@ -66,14 +76,13 @@ public class InfiniteNumberLine : MonoBehaviour
             float progress = elapsedTime / moveDuration;
             tickParent.position = Vector3.Lerp(startPos, targetPos, progress);
             elapsedTime += Time.deltaTime;
+
             ExtendTicksIfNeeded();
-            UpdateLineRenderer();
             yield return null;
         }
 
         tickParent.position = targetPos;
         ExtendTicksIfNeeded();
-        UpdateLineRenderer();
         isMoving = false;
     }
 
@@ -86,18 +95,35 @@ public class InfiniteNumberLine : MonoBehaviour
         {
             GameObject tick = activeTicks[0];
             activeTicks.RemoveAt(0);
+            
             float newX = activeTicks[activeTicks.Count - 1].transform.position.x + tickSpacing;
             tick.transform.position = new Vector3(newX, 0, 0);
             activeTicks.Add(tick);
+
+            // **Do NOT change its assigned number**
         }
 
         while (activeTicks[activeTicks.Count - 1].transform.position.x > rightBoundary + tickSpacing)
         {
             GameObject tick = activeTicks[activeTicks.Count - 1];
             activeTicks.RemoveAt(activeTicks.Count - 1);
+            
             float newX = activeTicks[0].transform.position.x - tickSpacing;
             tick.transform.position = new Vector3(newX, 0, 0);
             activeTicks.Insert(0, tick);
+
+            // **Do NOT change its assigned number**
+        }
+
+        UpdateLineRenderer();
+    }
+
+    void UpdateTickLabel(GameObject tick)
+    {
+        TextMeshProUGUI text = tick.GetComponentInChildren<TextMeshProUGUI>();
+        if (text != null)
+        {
+            text.text = tickNumbers[tick].ToString();
         }
     }
 
