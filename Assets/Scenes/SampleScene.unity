@@ -376,7 +376,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   positionText: {fileID: 169550310}
-  inputField: {fileID: 0}
+  numberPicker: {fileID: 514270941}
   moveDuration: 2
   animationSpeed: 2
 --- !u!114 &169550310
@@ -2304,6 +2304,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 169550309}
+        m_TargetAssemblyTypeName: CenterPositionDisplay, Assembly-CSharp
+        m_MethodName: MoveRight
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &990265554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3413,7 +3425,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1821525087}
         m_TargetAssemblyTypeName: InfiniteNumberLine, Assembly-CSharp
-        m_MethodName: MoveMarkers
+        m_MethodName: MoveLeft
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3425,7 +3437,7 @@ MonoBehaviour:
         m_CallState: 2
       - m_Target: {fileID: 169550309}
         m_TargetAssemblyTypeName: CenterPositionDisplay, Assembly-CSharp
-        m_MethodName: OnMoveTriggered
+        m_MethodName: MoveLeft
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4486,7 +4498,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tickPrefab: {fileID: 2676803513818769869, guid: e5874eadaa77954468938c076a50cea5, type: 3}
   tickParent: {fileID: 6899260}
-  inputField: {fileID: 0}
+  numberPicker: {fileID: 514270941}
   lineRenderer: {fileID: 1821525088}
   tickSpacing: 1
   moveDuration: 2

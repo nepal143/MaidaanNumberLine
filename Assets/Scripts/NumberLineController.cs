@@ -5,26 +5,24 @@ using TMPro;
 
 public class InfiniteNumberLine : MonoBehaviour
 {
-    public GameObject tickPrefab;  // Prefab for tick marks
-    public Transform tickParent;   // Parent for tick marks
-    public TMP_InputField inputField; // Input field for movement
-    public LineRenderer lineRenderer; // LineRenderer component
-    public float tickSpacing = 1f; // Distance between tick marks
-    public float moveDuration = 1f; // Movement duration (always 1 sec)
-    public int visibleTickCount = 40; // Number of visible ticks on screen
-    public float maxSpeed = 10f; // Prevents things from moving too fast
+    public GameObject tickPrefab;
+    public Transform tickParent;
+    public NumberPickerUI numberPicker;
+    public LineRenderer lineRenderer;
+    public float tickSpacing = 1f;
+    public float moveDuration = 1f;
+    public int visibleTickCount = 40;
+    public float maxSpeed = 10f;
 
-    private Queue<GameObject> tickPool = new Queue<GameObject>(); // Object pool
-    private List<GameObject> activeTicks = new List<GameObject>(); // Active ticks
-    private bool isMoving = false; // Prevent multiple moves
-    private float movementSpeed; // Speed in units per second
-    private Vector3 startPos, targetPos; // Movement positions
+    private Queue<GameObject> tickPool = new Queue<GameObject>();
+    private List<GameObject> activeTicks = new List<GameObject>();
+    private bool isMoving = false;
+    private Vector3 startPos, targetPos;
 
     void Start()
     {
         float startX = -visibleTickCount / 2 * tickSpacing;
-        
-        // Create tick pool
+
         for (int i = 0; i < visibleTickCount + 2; i++)
         {
             GameObject tick = Instantiate(tickPrefab, tickParent);
@@ -38,28 +36,31 @@ public class InfiniteNumberLine : MonoBehaviour
         UpdateLineRenderer();
     }
 
-    public void MoveMarkers()
+    public void MoveRight()
+    {
+        MoveMarkers(numberPicker.GetFinalNumber()); // Takes the value as positive
+    }
+
+    public void MoveLeft()
+    {
+        MoveMarkers(-numberPicker.GetFinalNumber()); // Takes the value as negative
+    }
+
+    private void MoveMarkers(float moveDistance)
     {
         if (isMoving) return;
 
-        if (float.TryParse(inputField.text, out float moveDistance))
-        {
-            moveDistance = Mathf.Clamp(moveDistance, -maxSpeed * moveDuration, maxSpeed * moveDuration); // Prevent too fast movement
-            startPos = tickParent.position;
-            targetPos = tickParent.position - new Vector3(moveDistance, 0, 0);
-            StartCoroutine(MoveSmoothly());
-        }
-        else
-        {
-            Debug.LogWarning("Invalid input. Enter a number.");
-        }
+        moveDistance = Mathf.Clamp(moveDistance, -maxSpeed * moveDuration, maxSpeed * moveDuration);
+        startPos = tickParent.position;
+        targetPos = tickParent.position - new Vector3(moveDistance, 0, 0);
+        StartCoroutine(MoveSmoothly());
     }
 
     IEnumerator MoveSmoothly()
     {
         isMoving = true;
         float elapsedTime = 0f;
-        
+
         while (elapsedTime < moveDuration)
         {
             float progress = elapsedTime / moveDuration;
@@ -70,7 +71,7 @@ public class InfiniteNumberLine : MonoBehaviour
             yield return null;
         }
 
-        tickParent.position = targetPos; // Ensure it reaches exact position
+        tickParent.position = targetPos;
         ExtendTicksIfNeeded();
         UpdateLineRenderer();
         isMoving = false;
@@ -81,7 +82,6 @@ public class InfiniteNumberLine : MonoBehaviour
         float leftBoundary = Camera.main.ScreenToWorldPoint(Vector3.zero).x;
         float rightBoundary = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0, 0)).x;
 
-        // Move leftmost tick to right if it goes out of screen
         while (activeTicks[0].transform.position.x < leftBoundary - tickSpacing)
         {
             GameObject tick = activeTicks[0];
@@ -91,7 +91,6 @@ public class InfiniteNumberLine : MonoBehaviour
             activeTicks.Add(tick);
         }
 
-        // Move rightmost tick to left if it goes out of screen
         while (activeTicks[activeTicks.Count - 1].transform.position.x > rightBoundary + tickSpacing)
         {
             GameObject tick = activeTicks[activeTicks.Count - 1];
