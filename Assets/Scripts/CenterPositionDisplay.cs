@@ -4,12 +4,12 @@ using System.Collections;
 
 public class CenterPositionDisplay : MonoBehaviour
 {
-    public TextMeshProUGUI positionText; // Assign the UI Text
-    public TMP_InputField inputField; // Reference to the input field
-    public float moveDuration = 1f; // Always update in 1 second
-    public float animationSpeed = 2f; // Speed of scale animation
+    public TextMeshProUGUI positionText;
+    public NumberPickerUI numberPicker;
+    public float moveDuration = 1f;
+    public float animationSpeed = 2f;
 
-    private float targetPosition = 0f; // The calculated position
+    private float targetPosition = 0f;
     private bool isAnimating = false;
 
     void Start()
@@ -17,18 +17,20 @@ public class CenterPositionDisplay : MonoBehaviour
         UpdateText(targetPosition);
     }
 
-    public void OnMoveTriggered()
+    public void MoveRight()
     {
-        if (float.TryParse(inputField.text, out float moveValue))
-        {
-            float newPosition = targetPosition + moveValue; // Calculate based on input
-            StartCoroutine(SmoothUpdateText(targetPosition, newPosition));
-            targetPosition = newPosition;
-        }
-        else
-        {
-            Debug.LogWarning("Invalid input. Enter a number.");
-        }
+        float moveValue = numberPicker.GetFinalNumber();
+        float newPosition = targetPosition + moveValue;
+        StartCoroutine(SmoothUpdateText(targetPosition, newPosition));
+        targetPosition = newPosition;
+    }
+
+    public void MoveLeft()
+    {
+        float moveValue = numberPicker.GetFinalNumber();
+        float newPosition = targetPosition - moveValue;
+        StartCoroutine(SmoothUpdateText(targetPosition, newPosition));
+        targetPosition = newPosition;
     }
 
     IEnumerator SmoothUpdateText(float startValue, float endValue)
@@ -43,7 +45,7 @@ public class CenterPositionDisplay : MonoBehaviour
             yield return null;
         }
 
-        UpdateText(endValue); // Ensure the final value is accurate
+        UpdateText(endValue);
         StartCoroutine(AnimateText());
     }
 
