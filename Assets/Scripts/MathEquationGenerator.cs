@@ -30,7 +30,7 @@ public class MathEquationGenerator : MonoBehaviour
     void Start()
     {
         equationText.text = "";
-        answerText.text = "0.00";
+        answerText.text = "0.00"; // Ensure the user input is always a float
         resultText.text = "";
         audioSource = GetComponent<AudioSource>();
 
@@ -100,9 +100,10 @@ public class MathEquationGenerator : MonoBehaviour
     {
         if (!answerMatched && float.TryParse(answerText.text, out float userAnswer))
         {
-            if (Mathf.RoundToInt(userAnswer) == correctAnswer)
+            // Compare the user input as float (not int)
+            if (Mathf.Approximately(userAnswer, correctAnswer)) // Handles small floating point errors
             {
-                answerMatched = true; // Set it true, but don't display "Package Received" yet
+                answerMatched = true;
             }
         }
     }
@@ -113,6 +114,7 @@ public class MathEquationGenerator : MonoBehaviour
         currentSquare = Instantiate(squarePrefab, spawnPosition, Quaternion.identity);
         StartCoroutine(MoveSquare(currentSquare));
     }
+
     IEnumerator MoveSquare(GameObject square)
     {
         float elapsedTime = 0f;
@@ -124,7 +126,7 @@ public class MathEquationGenerator : MonoBehaviour
             float userXOffset = correctAnswer;
             if (float.TryParse(answerText.text, out float userAnswer))
             {
-                userXOffset = correctAnswer - userAnswer;
+                userXOffset = correctAnswer - userAnswer; // Allow decimal values
             }
 
             Vector3 currentPos = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
@@ -140,8 +142,8 @@ public class MathEquationGenerator : MonoBehaviour
         if (answerMatched)
         {
             resultText.text = "Package Received";
-             ColorUtility.TryParseHtmlString("#CCF900", out Color correctColor);
-        resultText.color = correctColor; // Set color to #CCF900 (yellowish)
+            ColorUtility.TryParseHtmlString("#CCF900", out Color correctColor);
+            resultText.color = correctColor; // Set color to #CCF900 (yellowish)
             audioSource.PlayOneShot(correctSound);
         }
         else
@@ -157,12 +159,12 @@ public class MathEquationGenerator : MonoBehaviour
         GenerateNewEquation();
     }
 
-
     void SpawnExplosion(Vector3 position)
     {
         GameObject blast = Instantiate(blastPrefab, position, Quaternion.identity);
         Destroy(blast, 1.5f); // Ensure blast effect lasts 1.5 seconds
     }
+
     IEnumerator ClearMessageAfterDelay()
     {
         yield return new WaitForSeconds(2f);

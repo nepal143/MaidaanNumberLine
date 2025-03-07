@@ -12,10 +12,10 @@ public class NumberPickerUI : MonoBehaviour
     public Button clearButton; // Clear button
     public Button clearButton1; 
 
-    private string currentNumber = "0"; // Holds the entered number
+    private string currentNumber = "Steps To Move"; // Holds the entered number
 
     void Start()
-    {
+    { 
         // Assign number buttons (0-9)
         for (int i = 0; i < numberButtons.Length; i++)
         {
@@ -29,7 +29,7 @@ public class NumberPickerUI : MonoBehaviour
         // Assign backspace button with delay
         backspaceButton.onClick.AddListener(() => StartCoroutine(DelayedRemoveLastDigit()));
 
-        // Assign clear button with delay
+        // Assign clear buttons with delay
         clearButton.onClick.AddListener(() => StartCoroutine(DelayedClearInput()));
         clearButton1.onClick.AddListener(() => StartCoroutine(DelayedClearInput()));
 
@@ -38,6 +38,10 @@ public class NumberPickerUI : MonoBehaviour
 
     void AddDigit(string digit)
     {
+        // Remove "Steps To Move" when first typing
+        if (currentNumber == "Steps To Move")
+            currentNumber = "";
+
         // Prevent multiple decimals
         if (digit == "." && currentNumber.Contains(".")) return;
 
@@ -61,7 +65,7 @@ public class NumberPickerUI : MonoBehaviour
         if (currentNumber.Length > 1)
             currentNumber = currentNumber.Substring(0, currentNumber.Length - 1);
         else
-            currentNumber = "0"; // Reset to zero if nothing left
+            currentNumber = "Steps To Move"; // Reset to default if empty
 
         UpdateDisplay();
     }
@@ -74,7 +78,7 @@ public class NumberPickerUI : MonoBehaviour
 
     void ClearInput()
     {
-        currentNumber = "0";
+        currentNumber = "Steps To Move";
         UpdateDisplay();
     }
 
