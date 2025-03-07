@@ -5,32 +5,46 @@ using System.Collections;
 
 public class MathEquationGenerator : MonoBehaviour
 {
-    public TMP_Text equationText; // Reference to UI Text where the equation is displayed
-    public TMP_Text answerText;   // Reference to the final answer field below
-    public TMP_Text resultText;   // Reference to the result message text field
-    public Button leftButton; // Reference to the left button
-    public Button rightButton; // Reference to the right button
-    public GameObject squarePrefab; // Reference to the square prefab
+    public TMP_Text equationText;
+    public TMP_Text answerText;
+    public TMP_Text resultText;
+    public Button leftButton;
+    public Button rightButton;
+    public GameObject squarePrefab;
+    public GameObject blastPrefab; // Explosion Effect
+    public AudioClip correctSound;
+    public AudioClip wrongSound;
+    private AudioSource audioSource;
 
     private int correctAnswer;
     private float checkTimer = 0f;
     private string lastCheckedAnswer = "";
-    private float checkDelay = 0.2f; // Time in seconds before validating the answer
+    private float checkDelay = 0.2f;
     private GameObject currentSquare;
     private bool answerMatched = false;
 
+    private Vector3 startPosition = new Vector3(0, 2.5f, 0);
+    public float endYPosition = -2.5f;
+    private float moveDuration = 10f;
+
     void Start()
     {
-        GenerateNewEquation();
+        equationText.text = "";
+        answerText.text = "0.00"; // Ensure the user input is always a float
+        resultText.text = "";
+        audioSource = GetComponent<AudioSource>();
+
         leftButton.onClick.AddListener(() => OnButtonPressed("left"));
         rightButton.onClick.AddListener(() => OnButtonPressed("right"));
+
+        Invoke("GenerateNewEquation", 0.1f);
     }
 
     void Update()
     {
         if (answerText.text != lastCheckedAnswer)
         {
-            checkTimer = 0f; // Reset the timer when the answer changes
+            checkTimer = 0f;
             lastCheckedAnswer = answerText.text;
         }
         else
@@ -39,7 +53,7 @@ public class MathEquationGenerator : MonoBehaviour
             if (checkTimer >= checkDelay)
             {
                 CheckAnswer();
-                checkTimer = 0f; // Reset after checking
+                checkTimer = 0f;
             }
         }
     }
@@ -53,9 +67,14 @@ public class MathEquationGenerator : MonoBehaviour
             Destroy(currentSquare);
         }
 
-        int num1 = Random.Range(1, 10); // Generate random numbers between 1 and 9
+        leftButton.gameObject.SetActive(true);
+        rightButton.gameObject.SetActive(true);
+        leftButton.interactable = true;
+        rightButton.interactable = true;
+
+        int num1 = Random.Range(1, 10);
         int num2 = Random.Range(1, 10);
-        
+
         if (Random.value > 0.5f)
         {
             correctAnswer = num1 + num2;
@@ -66,56 +85,84 @@ public class MathEquationGenerator : MonoBehaviour
             correctAnswer = num1 - num2;
             equationText.text = num1 + " - " + num2 + " = ?";
         }
-        
+
+        float previousAnswerOffset = correctAnswer;
+        if (float.TryParse(answerText.text, out float previousAnswer))
+        {
+            previousAnswerOffset = correctAnswer - previousAnswer;
+        }
+
         answerMatched = false;
-        GenerateSquare();
+        GenerateSquare(previousAnswerOffset);
     }
 
     void CheckAnswer()
     {
         if (!answerMatched && float.TryParse(answerText.text, out float userAnswer))
         {
-            if (Mathf.RoundToInt(userAnswer) == correctAnswer)
+            // Compare the user input as float (not int)
+            if (Mathf.Approximately(userAnswer, correctAnswer)) // Handles small floating point errors
             {
                 answerMatched = true;
-                resultText.text = "Package Received";
-                Debug.Log("Correct Answer! Generating new equation.");
-                StopAllCoroutines(); // Stop the square from moving if answered correctly
-                GenerateNewEquation();
             }
         }
     }
 
-    void GenerateSquare()
+    void GenerateSquare(float initialXOffset)
     {
-        currentSquare = Instantiate(squarePrefab, new Vector3(0, 2.5f, 0), Quaternion.identity);
-        StartCoroutine(MoveSquareDown(currentSquare));
+        Vector3 spawnPosition = new Vector3(initialXOffset, startPosition.y, startPosition.z);
+        currentSquare = Instantiate(squarePrefab, spawnPosition, Quaternion.identity);
+        StartCoroutine(MoveSquare(currentSquare));
     }
 
-    IEnumerator MoveSquareDown(GameObject square)
+    IEnumerator MoveSquare(GameObject square)
     {
         float elapsedTime = 0f;
-        Vector3 startPosition = square.transform.position;
-        Vector3 endPosition = new Vector3(0, 0, 0);
-        
-        while (elapsedTime < 10f)
-        {
-            if (answerMatched)
-                yield break; // Stop moving if the answer was correct
+        Vector3 startPos = new Vector3(correctAnswer, startPosition.y, startPosition.z);
+        Vector3 endPos = new Vector3(correctAnswer, endYPosition, startPosition.z);
 
-            square.transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / 10f);
+        while (elapsedTime < moveDuration)
+        {
+            float userXOffset = correctAnswer;
+            if (float.TryParse(answerText.text, out float userAnswer))
+            {
+                userXOffset = correctAnswer - userAnswer; // Allow decimal values
+            }
+
+            Vector3 currentPos = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
+            currentPos.x = userXOffset;
+            square.transform.position = currentPos;
+
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        square.transform.position = endPosition;
+        square.transform.position = endPos;
 
-        if (!answerMatched)
+        if (answerMatched)
+        {
+            resultText.text = "Package Received";
+            ColorUtility.TryParseHtmlString("#CCF900", out Color correctColor);
+            resultText.color = correctColor; // Set color to #CCF900 (yellowish)
+            audioSource.PlayOneShot(correctSound);
+        }
+        else
         {
             resultText.text = "Package Missed";
-            StartCoroutine(ClearMessageAfterDelay());
-            GenerateNewEquation();
+            resultText.color = Color.red; // Change text color to red when package is missed
+            SpawnExplosion(square.transform.position);
+            audioSource.PlayOneShot(wrongSound);
+
+            yield return new WaitForSeconds(0.5f);
         }
+
+        GenerateNewEquation();
+    }
+
+    void SpawnExplosion(Vector3 position)
+    {
+        GameObject blast = Instantiate(blastPrefab, position, Quaternion.identity);
+        Destroy(blast, 1.5f); // Ensure blast effect lasts 1.5 seconds
     }
 
     IEnumerator ClearMessageAfterDelay()
@@ -126,7 +173,8 @@ public class MathEquationGenerator : MonoBehaviour
 
     void OnButtonPressed(string direction)
     {
+        leftButton.gameObject.SetActive(false);
+        rightButton.gameObject.SetActive(false);
         Debug.Log("Button pressed: " + direction);
-        // Implement movement logic if needed
     }
 }
