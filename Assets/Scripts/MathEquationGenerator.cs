@@ -11,7 +11,6 @@ public class MathEquationGenerator : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
     public GameObject squarePrefab;
-    public GameObject arrow; // Arrow GameObject reference
 
     private int correctAnswer;
     private float checkTimer = 0f;
@@ -19,12 +18,10 @@ public class MathEquationGenerator : MonoBehaviour
     private float checkDelay = 0.2f;
     private GameObject currentSquare;
     private bool answerMatched = false;
-    private bool packageSpawned = false;
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
-    private float moveDuration = 2f; // Falls for 2 seconds
-    private float spawnDelay = 2f; // Parcel spawns after 2 seconds
+    private float moveDuration = 10f;
 
     void Start()
     {
@@ -34,8 +31,6 @@ public class MathEquationGenerator : MonoBehaviour
 
         leftButton.onClick.AddListener(() => OnButtonPressed("left"));
         rightButton.onClick.AddListener(() => OnButtonPressed("right"));
-
-        arrow.SetActive(false); // Hide arrow at start
 
         Invoke("GenerateNewEquation", 0.1f);
     }
@@ -57,6 +52,7 @@ public class MathEquationGenerator : MonoBehaviour
             }
         }
     }
+
     void GenerateNewEquation()
     {
         StartCoroutine(ClearMessageAfterDelay());
@@ -71,23 +67,29 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.interactable = true;
         rightButton.interactable = true;
 
-        packageSpawned = false;
-
         int num1 = Random.Range(1, 10);
         int num2 = Random.Range(1, 10);
 
         if (Random.value > 0.5f)
         {
             correctAnswer = num1 + num2;
-            equationText.text = num1 + " + " + num2 + " = ?";
+            equationText.text ="Package Droping At "+ num1 + " + " + num2 + " = ?";
         }
         else
         {
             correctAnswer = num1 - num2;
-            equationText.text = num1 + " - " + num2 + " = ?";
+            equationText.text ="Package Droping At"+ num1 + " - " + num2 + " = ?";
+        }
+
+        float previousAnswerOffset = correctAnswer; // Default offset
+        if (float.TryParse(answerText.text, out float previousAnswer)) // Get previous answer before clearing
+        {
+            previousAnswerOffset = correctAnswer - previousAnswer;
         }
 
         answerMatched = false;
+
+        GenerateSquare(previousAnswerOffset);
     }
 
     void CheckAnswer()
@@ -98,56 +100,55 @@ public class MathEquationGenerator : MonoBehaviour
             {
                 answerMatched = true;
                 resultText.text = "Package Received";
-                Debug.Log("Correct Answer! Waiting for animation to finish...");
+                Debug.Log("Correct Answer! Generating new equation.");
+                StopAllCoroutines();
+                GenerateNewEquation();
             }
         }
     }
-
-    void GenerateSquare()
+    void GenerateSquare(float initialXOffset)
     {
-        float spawnXPosition = correctAnswer; // Default X position
-        if (float.TryParse(answerText.text, out float userAnswer))
-        {
-            spawnXPosition -= userAnswer; // Spawn based on user's answer
-        }
-
-        Vector3 spawnPosition = new Vector3(spawnXPosition, startPosition.y, startPosition.z);
+        Vector3 spawnPosition = new Vector3(initialXOffset, startPosition.y, startPosition.z);
         currentSquare = Instantiate(squarePrefab, spawnPosition, Quaternion.identity);
-
-        arrow.SetActive(true); // Enable arrow when package starts falling
-
         StartCoroutine(MoveSquare(currentSquare));
     }
 
-    IEnumerator MoveSquare(GameObject square)
+IEnumerator MoveSquare(GameObject square)
+{
+    float elapsedTime = 0f;
+    Vector3 startPos = new Vector3(correctAnswer, startPosition.y, startPosition.z);
+    Vector3 endPos = new Vector3(correctAnswer, endYPosition, startPosition.z);
+
+    while (elapsedTime < moveDuration)
     {
-        float elapsedTime = 0f;
-        Vector3 startPos = currentSquare.transform.position;
-        Vector3 endPos = new Vector3(startPos.x, endYPosition, startPos.z);
-
-        while (elapsedTime < moveDuration)
+        float userXOffset = correctAnswer;
+        if (float.TryParse(answerText.text, out float userAnswer))
         {
-            square.transform.position = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            userXOffset = correctAnswer - userAnswer;
         }
 
-        square.transform.position = endPos;
+        Vector3 currentPos = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
+        currentPos.x = userXOffset;
+        square.transform.position = currentPos;
 
-        arrow.SetActive(false); // Disable arrow when package reaches the ground
-
-        if (answerMatched)
-        {
-            Debug.Log("Package successfully delivered!");
-        }
-        else
-        {
-            resultText.text = "Package Missed";
-        }
-
-        StartCoroutine(ClearMessageAfterDelay());
-        GenerateNewEquation();
+        elapsedTime += Time.deltaTime;
+        yield return null;
     }
+
+    square.transform.position = endPos;
+
+    if (answerMatched)
+    {
+        resultText.text = "Package Delivered"; // ✅ New Message for correct answer
+    }
+    else
+    {
+        resultText.text = "Package Missed";
+    }
+
+    StartCoroutine(ClearMessageAfterDelay());
+    GenerateNewEquation();
+}
 
     IEnumerator ClearMessageAfterDelay()
     {
@@ -160,17 +161,5 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
         Debug.Log("Button pressed: " + direction);
-
-        if (!packageSpawned)
-        {
-            packageSpawned = true;
-            StartCoroutine(SpawnPackageAfterDelay());
-        }
-    }
-
-    IEnumerator SpawnPackageAfterDelay()
-    {
-        yield return new WaitForSeconds(spawnDelay);
-        GenerateSquare();
     }
 }
