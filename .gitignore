@@ -18,6 +18,8 @@ Assets/ALP_Assets/
 # They also could contain extremely sensitive data
 /[Mm]emoryCaptures/
 
+Assets/SpriteSheet
+
 # Recordings can get excessive in size
 /[Rr]ecordings/
 
