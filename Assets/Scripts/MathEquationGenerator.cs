@@ -18,10 +18,12 @@ public class MathEquationGenerator : MonoBehaviour
     private float checkDelay = 0.2f;
     private GameObject currentSquare;
     private bool answerMatched = false;
+    private bool packageSpawned = false;
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
-    private float moveDuration = 10f;
+    private float moveDuration = 2f; // Falls for 2 seconds
+    private float spawnDelay = 2f; // Parcel spawns after 2 seconds
 
     void Start()
     {
@@ -67,6 +69,8 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.interactable = true;
         rightButton.interactable = true;
 
+        packageSpawned = false; // Ensure package doesn't spawn before button press
+
         int num1 = Random.Range(1, 10);
         int num2 = Random.Range(1, 10);
 
@@ -81,15 +85,7 @@ public class MathEquationGenerator : MonoBehaviour
             equationText.text = num1 + " - " + num2 + " = ?";
         }
 
-        float previousAnswerOffset = correctAnswer; // Default offset
-        if (float.TryParse(answerText.text, out float previousAnswer)) // Get previous answer before clearing
-        {
-            previousAnswerOffset = correctAnswer - previousAnswer;
-        }
-
         answerMatched = false;
-
-        GenerateSquare(previousAnswerOffset);
     }
 
     void CheckAnswer()
@@ -100,15 +96,20 @@ public class MathEquationGenerator : MonoBehaviour
             {
                 answerMatched = true;
                 resultText.text = "Package Received";
-                Debug.Log("Correct Answer! Generating new equation.");
-                StopAllCoroutines();
-                GenerateNewEquation();
+                Debug.Log("Correct Answer! Waiting for animation to finish...");
             }
         }
     }
-    void GenerateSquare(float initialXOffset)
+
+    void GenerateSquare()
     {
-        Vector3 spawnPosition = new Vector3(initialXOffset, startPosition.y, startPosition.z);
+        float spawnXPosition = correctAnswer; // Default X position
+        if (float.TryParse(answerText.text, out float userAnswer))
+        {
+            spawnXPosition -= userAnswer; // Spawn based on user's answer
+        }
+
+        Vector3 spawnPosition = new Vector3(spawnXPosition, startPosition.y, startPosition.z);
         currentSquare = Instantiate(squarePrefab, spawnPosition, Quaternion.identity);
         StartCoroutine(MoveSquare(currentSquare));
     }
@@ -116,36 +117,29 @@ public class MathEquationGenerator : MonoBehaviour
     IEnumerator MoveSquare(GameObject square)
     {
         float elapsedTime = 0f;
-        Vector3 startPos = new Vector3(correctAnswer, startPosition.y, startPosition.z);
-        Vector3 endPos = new Vector3(correctAnswer, endYPosition, startPosition.z);
+        Vector3 startPos = currentSquare.transform.position;
+        Vector3 endPos = new Vector3(startPos.x, endYPosition, startPos.z); // Only move down, keep X fixed
 
         while (elapsedTime < moveDuration)
         {
-            if (answerMatched)
-                yield break;
-
-            float userXOffset = correctAnswer;
-            if (float.TryParse(answerText.text, out float userAnswer))
-            {
-                userXOffset = correctAnswer - userAnswer;
-            }
-
-            Vector3 currentPos = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
-            currentPos.x = userXOffset;
-            square.transform.position = currentPos;
-
+            square.transform.position = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
         square.transform.position = endPos;
 
-        if (!answerMatched)
+        if (answerMatched)
+        {
+            Debug.Log("Package successfully delivered!");
+        }
+        else
         {
             resultText.text = "Package Missed";
-            StartCoroutine(ClearMessageAfterDelay());
-            GenerateNewEquation();
         }
+
+        StartCoroutine(ClearMessageAfterDelay());
+        GenerateNewEquation();
     }
 
     IEnumerator ClearMessageAfterDelay()
@@ -159,5 +153,17 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
         Debug.Log("Button pressed: " + direction);
+
+        if (!packageSpawned)
+        {
+            packageSpawned = true;
+            StartCoroutine(SpawnPackageAfterDelay());
+        }
+    }
+
+    IEnumerator SpawnPackageAfterDelay()
+    {
+        yield return new WaitForSeconds(spawnDelay);
+        GenerateSquare();
     }
 }

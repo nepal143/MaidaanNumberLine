@@ -1,42 +1,90 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections;
 
 public class NumberPickerUI : MonoBehaviour
 {
-    public TMP_Text[] digitTexts = new TMP_Text[5]; // 5 digits (000.00)
-    public Button[] upButtons = new Button[5];
-    public Button[] downButtons = new Button[5];
+    public TMP_Text displayText; // Shows the full number
+    public Button[] numberButtons; // 0-9 buttons
+    public Button decimalButton; // Decimal point button
+    public Button backspaceButton; // Backspace button
+    public Button clearButton; // Clear button
+    public Button clearButton1; 
 
-    private int[] digitValues = { 0, 0, 0, 0, 0 };
+    private string currentNumber = "0"; // Holds the entered number
 
     void Start()
     {
-        for (int i = 0; i < 5; i++)
+        // Assign number buttons (0-9)
+        for (int i = 0; i < numberButtons.Length; i++)
         {
-            int index = i;
-            upButtons[i].onClick.AddListener(() => ChangeValue(index, 1));
-            downButtons[i].onClick.AddListener(() => ChangeValue(index, -1));
+            int digit = i;
+            numberButtons[i].onClick.AddListener(() => AddDigit(digit.ToString()));
         }
+
+        // Assign decimal button
+        decimalButton.onClick.AddListener(() => AddDigit("."));
+
+        // Assign backspace button with delay
+        backspaceButton.onClick.AddListener(() => StartCoroutine(DelayedRemoveLastDigit()));
+
+        // Assign clear button with delay
+        clearButton.onClick.AddListener(() => StartCoroutine(DelayedClearInput()));
+        clearButton1.onClick.AddListener(() => StartCoroutine(DelayedClearInput()));
+
         UpdateDisplay();
     }
 
-    void ChangeValue(int index, int change)
+    void AddDigit(string digit)
     {
-        digitValues[index] = (digitValues[index] + change + 10) % 10;
+        // Prevent multiple decimals
+        if (digit == "." && currentNumber.Contains(".")) return;
+
+        // Prevent leading zeros like "02"
+        if (currentNumber == "0" && digit != ".")
+            currentNumber = digit;
+        else
+            currentNumber += digit;
+
+        UpdateDisplay();
+    }
+
+    IEnumerator DelayedRemoveLastDigit()
+    {
+        yield return new WaitForSeconds(0.2f);
+        RemoveLastDigit();
+    }
+
+    void RemoveLastDigit()
+    {
+        if (currentNumber.Length > 1)
+            currentNumber = currentNumber.Substring(0, currentNumber.Length - 1);
+        else
+            currentNumber = "0"; // Reset to zero if nothing left
+
+        UpdateDisplay();
+    }
+
+    IEnumerator DelayedClearInput()
+    {
+        yield return new WaitForSeconds(0.2f);
+        ClearInput();
+    }
+
+    void ClearInput()
+    {
+        currentNumber = "0";
         UpdateDisplay();
     }
 
     void UpdateDisplay()
     {
-        for (int i = 0; i < 5; i++)
-        {
-            digitTexts[i].text = digitValues[i].ToString();
-        }
+        displayText.text = currentNumber;
     }
 
     public float GetFinalNumber()
     {
-        return float.Parse($"{digitValues[0]}{digitValues[1]}{digitValues[2]}.{digitValues[3]}{digitValues[4]}");
+        return float.TryParse(currentNumber, out float result) ? result : 0f;
     }
 }
