@@ -13,6 +13,7 @@ public class InfiniteNumberLine : MonoBehaviour
     public float moveDuration = 1f;
     public int visibleTickCount = 40;
     public float maxSpeed = 10f;
+    public float lineYPosition = 0f; // New variable for Y position
 
     private Queue<GameObject> tickPool = new Queue<GameObject>();
     private List<GameObject> activeTicks = new List<GameObject>();
@@ -28,7 +29,7 @@ public class InfiniteNumberLine : MonoBehaviour
             GameObject tick = Instantiate(tickPrefab, tickParent);
             tick.SetActive(true);
             float xPos = startX + i * tickSpacing;
-            tick.transform.position = new Vector3(xPos, 0, 0);
+            tick.transform.position = new Vector3(xPos, lineYPosition, 0); // Use Y position variable
             tickPool.Enqueue(tick);
             activeTicks.Add(tick);
         }
@@ -87,7 +88,7 @@ public class InfiniteNumberLine : MonoBehaviour
             GameObject tick = activeTicks[0];
             activeTicks.RemoveAt(0);
             float newX = activeTicks[activeTicks.Count - 1].transform.position.x + tickSpacing;
-            tick.transform.position = new Vector3(newX, 0, 0);
+            tick.transform.position = new Vector3(newX, lineYPosition, 0); // Update with Y position
             activeTicks.Add(tick);
         }
 
@@ -96,7 +97,7 @@ public class InfiniteNumberLine : MonoBehaviour
             GameObject tick = activeTicks[activeTicks.Count - 1];
             activeTicks.RemoveAt(activeTicks.Count - 1);
             float newX = activeTicks[0].transform.position.x - tickSpacing;
-            tick.transform.position = new Vector3(newX, 0, 0);
+            tick.transform.position = new Vector3(newX, lineYPosition, 0); // Update with Y position
             activeTicks.Insert(0, tick);
         }
     }
@@ -108,7 +109,8 @@ public class InfiniteNumberLine : MonoBehaviour
         lineRenderer.positionCount = activeTicks.Count;
         for (int i = 0; i < activeTicks.Count; i++)
         {
-            lineRenderer.SetPosition(i, activeTicks[i].transform.position);
+            Vector3 tickPos = activeTicks[i].transform.position;
+            lineRenderer.SetPosition(i, new Vector3(tickPos.x, lineYPosition, tickPos.z)); // Update with Y position
         }
     }
 }
