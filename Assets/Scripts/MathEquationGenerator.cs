@@ -11,6 +11,10 @@ public class MathEquationGenerator : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
     public GameObject squarePrefab;
+    public GameObject blastPrefab; // Explosion Effect
+    public AudioClip correctSound;
+    public AudioClip wrongSound;
+    private AudioSource audioSource;
 
     private int correctAnswer;
     private float checkTimer = 0f;
@@ -28,6 +32,7 @@ public class MathEquationGenerator : MonoBehaviour
         equationText.text = "";
         answerText.text = "0.00";
         resultText.text = "";
+        audioSource = GetComponent<AudioSource>();
 
         leftButton.onClick.AddListener(() => OnButtonPressed("left"));
         rightButton.onClick.AddListener(() => OnButtonPressed("right"));
@@ -73,22 +78,21 @@ public class MathEquationGenerator : MonoBehaviour
         if (Random.value > 0.5f)
         {
             correctAnswer = num1 + num2;
-            equationText.text ="Package Droping At "+ num1 + " + " + num2 + " = ?";
+            equationText.text = num1 + " + " + num2 + " = ?";
         }
         else
         {
             correctAnswer = num1 - num2;
-            equationText.text ="Package Droping At"+ num1 + " - " + num2 + " = ?";
+            equationText.text = num1 + " - " + num2 + " = ?";
         }
 
-        float previousAnswerOffset = correctAnswer; // Default offset
-        if (float.TryParse(answerText.text, out float previousAnswer)) // Get previous answer before clearing
+        float previousAnswerOffset = correctAnswer;
+        if (float.TryParse(answerText.text, out float previousAnswer))
         {
             previousAnswerOffset = correctAnswer - previousAnswer;
         }
 
         answerMatched = false;
-
         GenerateSquare(previousAnswerOffset);
     }
 
@@ -98,58 +102,67 @@ public class MathEquationGenerator : MonoBehaviour
         {
             if (Mathf.RoundToInt(userAnswer) == correctAnswer)
             {
-                answerMatched = true;
-                resultText.text = "Package Received";
-                Debug.Log("Correct Answer! Generating new equation.");
-                StopAllCoroutines();
-                GenerateNewEquation();
+                answerMatched = true; // Set it true, but don't display "Package Received" yet
             }
         }
     }
+
     void GenerateSquare(float initialXOffset)
     {
         Vector3 spawnPosition = new Vector3(initialXOffset, startPosition.y, startPosition.z);
         currentSquare = Instantiate(squarePrefab, spawnPosition, Quaternion.identity);
         StartCoroutine(MoveSquare(currentSquare));
     }
-
-IEnumerator MoveSquare(GameObject square)
-{
-    float elapsedTime = 0f;
-    Vector3 startPos = new Vector3(correctAnswer, startPosition.y, startPosition.z);
-    Vector3 endPos = new Vector3(correctAnswer, endYPosition, startPosition.z);
-
-    while (elapsedTime < moveDuration)
+    IEnumerator MoveSquare(GameObject square)
     {
-        float userXOffset = correctAnswer;
-        if (float.TryParse(answerText.text, out float userAnswer))
+        float elapsedTime = 0f;
+        Vector3 startPos = new Vector3(correctAnswer, startPosition.y, startPosition.z);
+        Vector3 endPos = new Vector3(correctAnswer, endYPosition, startPosition.z);
+
+        while (elapsedTime < moveDuration)
         {
-            userXOffset = correctAnswer - userAnswer;
+            float userXOffset = correctAnswer;
+            if (float.TryParse(answerText.text, out float userAnswer))
+            {
+                userXOffset = correctAnswer - userAnswer;
+            }
+
+            Vector3 currentPos = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
+            currentPos.x = userXOffset;
+            square.transform.position = currentPos;
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
         }
 
-        Vector3 currentPos = Vector3.Lerp(startPos, endPos, elapsedTime / moveDuration);
-        currentPos.x = userXOffset;
-        square.transform.position = currentPos;
+        square.transform.position = endPos;
 
-        elapsedTime += Time.deltaTime;
-        yield return null;
+        if (answerMatched)
+        {
+            resultText.text = "Package Received";
+             ColorUtility.TryParseHtmlString("#CCF900", out Color correctColor);
+        resultText.color = correctColor; // Set color to #CCF900 (yellowish)
+            audioSource.PlayOneShot(correctSound);
+        }
+        else
+        {
+            resultText.text = "Package Missed";
+            resultText.color = Color.red; // Change text color to red when package is missed
+            SpawnExplosion(square.transform.position);
+            audioSource.PlayOneShot(wrongSound);
+
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        GenerateNewEquation();
     }
 
-    square.transform.position = endPos;
 
-    if (answerMatched)
+    void SpawnExplosion(Vector3 position)
     {
-        resultText.text = "Package Delivered"; // ✅ New Message for correct answer
+        GameObject blast = Instantiate(blastPrefab, position, Quaternion.identity);
+        Destroy(blast, 1.5f); // Ensure blast effect lasts 1.5 seconds
     }
-    else
-    {
-        resultText.text = "Package Missed";
-    }
-
-    StartCoroutine(ClearMessageAfterDelay());
-    GenerateNewEquation();
-}
-
     IEnumerator ClearMessageAfterDelay()
     {
         yield return new WaitForSeconds(2f);
