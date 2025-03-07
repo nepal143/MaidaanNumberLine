@@ -11,6 +11,7 @@ public class MathEquationGenerator : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
     public GameObject squarePrefab;
+    public GameObject arrow; // Arrow GameObject reference
 
     private int correctAnswer;
     private float checkTimer = 0f;
@@ -34,6 +35,8 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.onClick.AddListener(() => OnButtonPressed("left"));
         rightButton.onClick.AddListener(() => OnButtonPressed("right"));
 
+        arrow.SetActive(false); // Hide arrow at start
+
         Invoke("GenerateNewEquation", 0.1f);
     }
 
@@ -54,7 +57,6 @@ public class MathEquationGenerator : MonoBehaviour
             }
         }
     }
-
     void GenerateNewEquation()
     {
         StartCoroutine(ClearMessageAfterDelay());
@@ -69,7 +71,7 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.interactable = true;
         rightButton.interactable = true;
 
-        packageSpawned = false; // Ensure package doesn't spawn before button press
+        packageSpawned = false;
 
         int num1 = Random.Range(1, 10);
         int num2 = Random.Range(1, 10);
@@ -111,6 +113,9 @@ public class MathEquationGenerator : MonoBehaviour
 
         Vector3 spawnPosition = new Vector3(spawnXPosition, startPosition.y, startPosition.z);
         currentSquare = Instantiate(squarePrefab, spawnPosition, Quaternion.identity);
+
+        arrow.SetActive(true); // Enable arrow when package starts falling
+
         StartCoroutine(MoveSquare(currentSquare));
     }
 
@@ -118,7 +123,7 @@ public class MathEquationGenerator : MonoBehaviour
     {
         float elapsedTime = 0f;
         Vector3 startPos = currentSquare.transform.position;
-        Vector3 endPos = new Vector3(startPos.x, endYPosition, startPos.z); // Only move down, keep X fixed
+        Vector3 endPos = new Vector3(startPos.x, endYPosition, startPos.z);
 
         while (elapsedTime < moveDuration)
         {
@@ -128,6 +133,8 @@ public class MathEquationGenerator : MonoBehaviour
         }
 
         square.transform.position = endPos;
+
+        arrow.SetActive(false); // Disable arrow when package reaches the ground
 
         if (answerMatched)
         {
