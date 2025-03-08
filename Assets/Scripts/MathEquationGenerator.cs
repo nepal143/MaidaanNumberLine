@@ -25,8 +25,9 @@ public class MathEquationGenerator : MonoBehaviour
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
-    
-    private float moveSpeed = 0.5f;  // Constant speed
+
+    private float moveSpeed = 0.5f;
+    public float speedMultiplier = 1f;  // Speed multiplier, can be adjusted anytime
 
     void Start()
     {
@@ -58,9 +59,9 @@ public class MathEquationGenerator : MonoBehaviour
             }
         }
     }
-
     void GenerateNewEquation()
     {
+        ResetSpeedMultiplier();  // Reset speed before generating a new equation
         StartCoroutine(ClearMessageAfterDelay());
 
         if (currentSquare != null)
@@ -101,6 +102,12 @@ public class MathEquationGenerator : MonoBehaviour
         GenerateSquare(correctAnswer - previousAnswer);
     }
 
+    void ResetSpeedMultiplier()
+    {
+        speedMultiplier = 1f;  // Reset speed back to normal before generating a new equation
+    }
+
+
     void CheckAnswer()
     {
         if (!answerMatched && float.TryParse(answerText.text, out float userAnswer))
@@ -132,7 +139,7 @@ public class MathEquationGenerator : MonoBehaviour
             }
 
             Vector3 newPos = square.transform.position;
-            newPos.y -= moveSpeed * Time.deltaTime;
+            newPos.y -= moveSpeed * speedMultiplier * Time.deltaTime;  // Applied speed multiplier
             newPos.x = userXOffset;
             square.transform.position = newPos;
 
@@ -169,10 +176,22 @@ public class MathEquationGenerator : MonoBehaviour
         yield return new WaitForSeconds(2f);
         resultText.text = "";
     }
-
     void OnButtonPressed(string direction)
     {
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
+        StartCoroutine(IncreaseSpeedAfterDelay());
+    }
+
+    IEnumerator IncreaseSpeedAfterDelay()
+    {
+        yield return new WaitForSeconds(2f);  // Wait for 2 seconds
+        SetSpeedMultiplier(6f);  // Increase speed multiplier to 3
+    }
+
+    // Function to update speed multiplier dynamically
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        speedMultiplier = Mathf.Max(0.1f, multiplier);  // Ensuring it doesn’t go below 0.1
     }
 }
