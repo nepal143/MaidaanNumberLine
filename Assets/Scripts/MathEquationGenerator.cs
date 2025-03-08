@@ -22,11 +22,13 @@ public class MathEquationGenerator : MonoBehaviour
     private float checkDelay = 0.2f;
     private GameObject currentSquare;
     private bool answerMatched = false;
+    private bool speedIncreased = false; // Prevent multiple speed increases
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
-    
-    private float moveSpeed = 0.5f;  // Constant speed
+
+    private float moveSpeed = 0.3f;
+    public float speedMultiplier = 1f;  // Default speed
 
     void Start()
     {
@@ -35,8 +37,8 @@ public class MathEquationGenerator : MonoBehaviour
         resultText.text = "";
         audioSource = GetComponent<AudioSource>();
 
-        leftButton.onClick.AddListener(() => OnButtonPressed("left"));
-        rightButton.onClick.AddListener(() => OnButtonPressed("right"));
+        leftButton.onClick.AddListener(() => OnButtonPressed());
+        rightButton.onClick.AddListener(() => OnButtonPressed());
 
         Invoke("GenerateNewEquation", 0.1f);
     }
@@ -57,10 +59,18 @@ public class MathEquationGenerator : MonoBehaviour
                 checkTimer = 0f;
             }
         }
+
+        // Apply speed increase after delay if triggered
+        if (speedIncreased)
+        {
+            SetSpeedMultiplier(7f);
+            speedIncreased = false; // Reset flag
+        }
     }
 
     void GenerateNewEquation()
     {
+        ResetSpeedMultiplier();
         StartCoroutine(ClearMessageAfterDelay());
 
         if (currentSquare != null)
@@ -98,7 +108,13 @@ public class MathEquationGenerator : MonoBehaviour
         } while (Mathf.Abs(correctAnswer - previousAnswer) <= 3);
 
         answerMatched = false;
+        speedIncreased = false; // Reset for next round
         GenerateSquare(correctAnswer - previousAnswer);
+    }
+
+    void ResetSpeedMultiplier()
+    {
+        speedMultiplier = 1f;
     }
 
     void CheckAnswer()
@@ -132,7 +148,7 @@ public class MathEquationGenerator : MonoBehaviour
             }
 
             Vector3 newPos = square.transform.position;
-            newPos.y -= moveSpeed * Time.deltaTime;
+            newPos.y -= moveSpeed * speedMultiplier * Time.deltaTime;
             newPos.x = userXOffset;
             square.transform.position = newPos;
 
@@ -142,8 +158,7 @@ public class MathEquationGenerator : MonoBehaviour
         if (answerMatched)
         {
             resultText.text = "Package Received";
-            ColorUtility.TryParseHtmlString("#CCF900", out Color correctColor);
-            resultText.color = correctColor;
+            resultText.color = new Color(0.8f, 0.98f, 0f); // Light green color
             audioSource.PlayOneShot(correctSound);
         }
         else
@@ -170,9 +185,21 @@ public class MathEquationGenerator : MonoBehaviour
         resultText.text = "";
     }
 
-    void OnButtonPressed(string direction)
+    void OnButtonPressed()
     {
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
+        StartCoroutine(IncreaseSpeedAfterDelay());
+    }
+
+    IEnumerator IncreaseSpeedAfterDelay()
+    {
+        yield return new WaitForSeconds(2.2f);
+        speedIncreased = true; // Flag update so `Update()` can apply the speed change
+    }
+
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        speedMultiplier = Mathf.Max(0.1f, multiplier);
     }
 }

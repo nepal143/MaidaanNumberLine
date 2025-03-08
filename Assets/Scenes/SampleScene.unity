@@ -950,6 +950,7 @@ MonoBehaviour:
   correctSound: {fileID: 8300000, guid: 256680d2bd939484287b1485ae58bf96, type: 3}
   wrongSound: {fileID: 8300000, guid: fa485a356b10e9144bdbb2d101eb1d58, type: 3}
   endYPosition: -1.2
+  speedMultiplier: 1
 --- !u!82 &333686125
 AudioSource:
   m_ObjectHideFlags: 0
