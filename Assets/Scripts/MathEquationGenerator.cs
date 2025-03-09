@@ -160,6 +160,7 @@ public class MathEquationGenerator : MonoBehaviour
             resultText.text = "Package Received";
             resultText.color = new Color(0.8f, 0.98f, 0f); // Light green color
             audioSource.PlayOneShot(correctSound);
+            ScoreManager.Instance.IncreaseScoreOnPackageReceived();
         }
         else
         {
@@ -189,15 +190,19 @@ public class MathEquationGenerator : MonoBehaviour
     {
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
-        StartCoroutine(IncreaseSpeedAfterDelay());
+        StartCoroutine(IncreaseSpeedAfterDelay(currentSquare)); // Pass the current package
     }
 
-    IEnumerator IncreaseSpeedAfterDelay()
+    IEnumerator IncreaseSpeedAfterDelay(GameObject packageAtButtonPress)
     {
         yield return new WaitForSeconds(2.2f);
-        speedIncreased = true; // Flag update so `Update()` can apply the speed change
-    }
 
+        // Only increase speed if the package is the same one from when the button was pressed
+        if (currentSquare == packageAtButtonPress)
+        {
+            speedIncreased = true;
+        }
+    }
     public void SetSpeedMultiplier(float multiplier)
     {
         speedMultiplier = Mathf.Max(0.1f, multiplier);
