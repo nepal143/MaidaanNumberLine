@@ -1,18 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class toggleObjects : MonoBehaviour
+public class ToggleObjects : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public GameObject objectToDisable;
+    public GameObject objectToEnable;
 
-    // Update is called once per frame
-    void Update()
+    public void Toggle()
     {
-        
+        if (objectToDisable != null) objectToDisable.SetActive(false);
+        if (objectToEnable != null) objectToEnable.SetActive(true);
     }
 }
