@@ -30,13 +30,13 @@ public class MathEquationGenerator : MonoBehaviour
     private float moveSpeed = 0.3f;
     public float speedMultiplier = 1f;
 
-    // **NEW VARIABLES**
     private float previousLocation;
     private int correctStepsToMove;
     private int stepsMoved;
     private int numberLineLocation;
     public TMP_Text stepsMovedText;
 
+    private bool isFirstEquation = true; // ✅ Track the first equation generation
 
     void Start()
     {
@@ -90,7 +90,6 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.interactable = true;
         rightButton.interactable = true;
 
-        // **STORE PREVIOUS LOCATION BEFORE NEW EQUATION**
         if (!float.TryParse(answerText.text, out previousLocation))
         {
             Debug.Log(previousLocation);
@@ -115,12 +114,18 @@ public class MathEquationGenerator : MonoBehaviour
 
         } while (Mathf.Abs(correctAnswer - previousLocation) <= 3);
 
-        // **CALCULATE CORRECT STEPS TO MOVE BEFORE BUTTON PRESS**
         correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
 
         answerMatched = false;
         speedIncreased = false;
         GenerateSquare(correctStepsToMove);
+
+        // ✅ Call StartGame() only on first equation generation
+        if (isFirstEquation)
+        {
+            WebGLBridge.Instance.StartGame();
+            isFirstEquation = false;
+        }
     }
 
     void ResetSpeedMultiplier()
@@ -156,7 +161,6 @@ public class MathEquationGenerator : MonoBehaviour
             if (float.TryParse(answerText.text, out float userAnswer))
             {
                 userXOffset = correctAnswer - userAnswer;
-                // stepsMoved = userAnswer ; 
             }
 
             Vector3 newPos = square.transform.position;
@@ -173,7 +177,6 @@ public class MathEquationGenerator : MonoBehaviour
             resultText.color = new Color(0.8f, 0.98f, 0f);
             audioSource.PlayOneShot(correctSound);
             ScoreManager.Instance.IncreaseScoreOnPackageReceived();
-            LogEquationData();
         }
         else
         {
@@ -181,10 +184,10 @@ public class MathEquationGenerator : MonoBehaviour
             resultText.color = Color.red;
             SpawnExplosion(square.transform.position);
             audioSource.PlayOneShot(wrongSound);
-            LogEquationData();
             yield return new WaitForSeconds(0.5f);
         }
 
+        LogEquationData();
         GenerateNewEquation();
     }
 
@@ -230,12 +233,14 @@ public class MathEquationGenerator : MonoBehaviour
 
     void LogEquationData()
     {
-        // **CALCULATE FINAL NUMBER LINE LOCATION**
         numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
         string result = answerMatched ? "Correct" : "Incorrect";
 
         string json = $"{{ \"question\":\"{equationText.text.Replace(" = ?", "")}\", \"numberLineLocation\":{numberLineLocation}, \"correctStepsToMove\":{correctStepsToMove}, \"stepsMoved\":{stepsMoved}, \"result\":\"{result}\" }}";
 
         Debug.Log(json);
+
+        // ✅ Update the score when equation data is logged
+        WebGLBridge.Instance.UpdateScore(ScoreManager.Instance.GetScore());
     }
 }
