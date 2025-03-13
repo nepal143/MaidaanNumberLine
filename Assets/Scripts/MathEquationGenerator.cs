@@ -22,13 +22,13 @@ public class MathEquationGenerator : MonoBehaviour
     private float checkDelay = 0.2f;
     private GameObject currentSquare;
     private bool answerMatched = false;
-    private bool speedIncreased = false; // Prevent multiple speed increases
+    private bool speedIncreased = false;
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
 
     private float moveSpeed = 0.3f;
-    public float speedMultiplier = 1f;  // Default speed
+    public float speedMultiplier = 1f;
 
     void Start()
     {
@@ -60,11 +60,10 @@ public class MathEquationGenerator : MonoBehaviour
             }
         }
 
-        // Apply speed increase after delay if triggered
         if (speedIncreased)
         {
             SetSpeedMultiplier(7f);
-            speedIncreased = false; // Reset flag
+            speedIncreased = false;
         }
     }
 
@@ -108,7 +107,7 @@ public class MathEquationGenerator : MonoBehaviour
         } while (Mathf.Abs(correctAnswer - previousAnswer) <= 3);
 
         answerMatched = false;
-        speedIncreased = false; // Reset for next round
+        speedIncreased = false;
         GenerateSquare(correctAnswer - previousAnswer);
     }
 
@@ -158,9 +157,10 @@ public class MathEquationGenerator : MonoBehaviour
         if (answerMatched)
         {
             resultText.text = "Package Received";
-            resultText.color = new Color(0.8f, 0.98f, 0f); // Light green color
+            resultText.color = new Color(0.8f, 0.98f, 0f);
             audioSource.PlayOneShot(correctSound);
             ScoreManager.Instance.IncreaseScoreOnPackageReceived();
+            LogEquationData();
         }
         else
         {
@@ -168,8 +168,12 @@ public class MathEquationGenerator : MonoBehaviour
             resultText.color = Color.red;
             SpawnExplosion(square.transform.position);
             audioSource.PlayOneShot(wrongSound);
+            LogEquationData();
             yield return new WaitForSeconds(0.5f);
         }
+
+        // **Logging the JSON object**
+
 
         GenerateNewEquation();
     }
@@ -190,21 +194,48 @@ public class MathEquationGenerator : MonoBehaviour
     {
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
-        StartCoroutine(IncreaseSpeedAfterDelay(currentSquare)); // Pass the current package
+        StartCoroutine(IncreaseSpeedAfterDelay(currentSquare));
     }
 
     IEnumerator IncreaseSpeedAfterDelay(GameObject packageAtButtonPress)
     {
         yield return new WaitForSeconds(2.2f);
 
-        // Only increase speed if the package is the same one from when the button was pressed
         if (currentSquare == packageAtButtonPress)
         {
             speedIncreased = true;
         }
     }
+
     public void SetSpeedMultiplier(float multiplier)
     {
         speedMultiplier = Mathf.Max(0.1f, multiplier);
     }
+
+    void LogEquationData()
+    {
+        // Store the previous number line location before any changes
+        float previousLocation;
+        if (!float.TryParse(answerText.text, out previousLocation))
+        {
+            previousLocation = 0; // Default to 0 if parsing fails
+        }
+
+        // User's answer (steps moved)
+        int stepsMoved;
+        if (!int.TryParse(answerText.text, out stepsMoved))
+        {
+            stepsMoved = 0; // Default to 0 if parsing fails
+        }
+
+        int correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
+        int numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
+        string result = answerMatched ? "Correct" : "Incorrect";
+
+        string json = $"{{ \"question\":\"{equationText.text.Replace(" = ?", "")}\", \"numberLineLocation\":{numberLineLocation}, \"correctStepsToMove\":{correctStepsToMove}, \"stepsMoved\":{stepsMoved}, \"result\":\"{result}\" }}";
+
+        Debug.Log(json);
+    }
+
+
 }

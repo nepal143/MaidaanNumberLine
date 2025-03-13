@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class NumberPickerUI : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class NumberPickerUI : MonoBehaviour
     public Button decimalButton; // Decimal point button
     public Button backspaceButton; // Backspace button
     public Button clearButton; // Clear button
-    public Button clearButton1; 
+    public Button clearButton1; // Second clear button
 
     private string currentNumber = "Steps"; // Holds the entered number
 
@@ -26,10 +27,10 @@ public class NumberPickerUI : MonoBehaviour
         // Assign decimal button
         decimalButton.onClick.AddListener(() => AddDigit("."));
 
-        // Assign backspace button with delay
+        // Assign backspace button
         backspaceButton.onClick.AddListener(() => StartCoroutine(DelayedRemoveLastDigit()));
 
-        // Assign clear buttons with delay
+        // Assign clear buttons
         clearButton.onClick.AddListener(() => StartCoroutine(DelayedClearInput()));
         clearButton1.onClick.AddListener(() => StartCoroutine(DelayedClearInput()));
 
