@@ -19,7 +19,7 @@ public class WebGLBridge : MonoBehaviour
     public GameObject trialGameObject; // ✅ Assign in Inspector (UI for trial mode)
     public GameObject gameStartObject; // ✅ Assign the GameObject containing `GameStartManager`
 
-    private GameStartManager gameStartManager;
+    public GameStartManager gameStartManager;
     private string baseUrl = "http://localhost:8008/api/v1/webgl-game";
     private UserData userData = new UserData(); // ✅ Centralized user data storage
 
@@ -48,6 +48,10 @@ public class WebGLBridge : MonoBehaviour
             {
                 Debug.LogError("❌ GameStartManager component is missing on the assigned GameObject!");
             }
+            else
+            {
+                Debug.Log("found GameStartManager ");
+            }
         }
         else
         {
@@ -71,9 +75,9 @@ public class WebGLBridge : MonoBehaviour
             }
 
             // ✅ If NOT a trial game, start the game automatically
-            if (!userData.isTrial && gameStartManager != null)
+            if (!userData.isTrial)
             {
-                gameStartManager.StartGame();
+                StartCoroutine(StartGameWithDelay());
                 Debug.Log("🚀 Starting main game since it's NOT a trial.");
             }
         }
@@ -81,6 +85,11 @@ public class WebGLBridge : MonoBehaviour
         {
             Debug.LogError("❌ JSON Parse Error: " + e.Message);
         }
+    }
+    IEnumerator StartGameWithDelay()
+    {
+        yield return new WaitForSeconds(0.2f); // Wait for 0.2 seconds before starting the game
+        StartGame();
     }
 
     public void StartGame()
