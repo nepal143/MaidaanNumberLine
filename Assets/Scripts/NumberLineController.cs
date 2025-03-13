@@ -39,12 +39,12 @@ public class InfiniteNumberLine : MonoBehaviour
 
     public void MoveRight()
     {
-        MoveMarkers(numberPicker.GetFinalNumber()); // Takes the value as positive
+        MoveMarkers(numberPicker.GetFinalNumber()/2); // Takes the value as positive
     }
 
     public void MoveLeft()
     {
-        MoveMarkers(-numberPicker.GetFinalNumber()); // Takes the value as negative
+        MoveMarkers(-numberPicker.GetFinalNumber()/2); // Takes the value as negative
     }
 
     private void MoveMarkers(float moveDistance)
