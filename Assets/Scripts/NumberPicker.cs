@@ -57,7 +57,7 @@ public class NumberPickerUI : MonoBehaviour
 
     IEnumerator DelayedRemoveLastDigit()
     {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.001f);
         RemoveLastDigit();
     }
 
@@ -73,7 +73,7 @@ public class NumberPickerUI : MonoBehaviour
 
     IEnumerator DelayedClearInput()
     {
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(2.21f);
         ClearInput();
     }
 

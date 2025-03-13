@@ -2744,8 +2744,9 @@ MonoBehaviour:
   blastPrefab: {fileID: 7922918981036880920, guid: 96d432784b969d644adde1e70bd50806, type: 3}
   correctSound: {fileID: 8300000, guid: 256680d2bd939484287b1485ae58bf96, type: 3}
   wrongSound: {fileID: 8300000, guid: fa485a356b10e9144bdbb2d101eb1d58, type: 3}
-  endYPosition: -1.2
+  endYPosition: -1.3
   speedMultiplier: 1
+  stepsMovedText: {fileID: 17084776}
 --- !u!82 &333686125
 AudioSource:
   m_ObjectHideFlags: 0

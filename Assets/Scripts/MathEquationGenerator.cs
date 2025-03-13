@@ -30,6 +30,14 @@ public class MathEquationGenerator : MonoBehaviour
     private float moveSpeed = 0.3f;
     public float speedMultiplier = 1f;
 
+    // **NEW VARIABLES**
+    private float previousLocation;
+    private int correctStepsToMove;
+    private int stepsMoved;
+    private int numberLineLocation;
+    public TMP_Text stepsMovedText;
+
+
     void Start()
     {
         equationText.text = "";
@@ -82,10 +90,11 @@ public class MathEquationGenerator : MonoBehaviour
         leftButton.interactable = true;
         rightButton.interactable = true;
 
-        float previousAnswer = 0f;
-        if (float.TryParse(answerText.text, out float userAnswer))
+        // **STORE PREVIOUS LOCATION BEFORE NEW EQUATION**
+        if (!float.TryParse(answerText.text, out previousLocation))
         {
-            previousAnswer = userAnswer;
+            Debug.Log(previousLocation);
+            previousLocation = 0f;
         }
 
         do
@@ -104,11 +113,14 @@ public class MathEquationGenerator : MonoBehaviour
                 equationText.text = num1 + " - " + num2 + " = ?";
             }
 
-        } while (Mathf.Abs(correctAnswer - previousAnswer) <= 3);
+        } while (Mathf.Abs(correctAnswer - previousLocation) <= 3);
+
+        // **CALCULATE CORRECT STEPS TO MOVE BEFORE BUTTON PRESS**
+        correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
 
         answerMatched = false;
         speedIncreased = false;
-        GenerateSquare(correctAnswer - previousAnswer);
+        GenerateSquare(correctStepsToMove);
     }
 
     void ResetSpeedMultiplier()
@@ -144,6 +156,7 @@ public class MathEquationGenerator : MonoBehaviour
             if (float.TryParse(answerText.text, out float userAnswer))
             {
                 userXOffset = correctAnswer - userAnswer;
+                // stepsMoved = userAnswer ; 
             }
 
             Vector3 newPos = square.transform.position;
@@ -172,9 +185,6 @@ public class MathEquationGenerator : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
 
-        // **Logging the JSON object**
-
-
         GenerateNewEquation();
     }
 
@@ -194,6 +204,12 @@ public class MathEquationGenerator : MonoBehaviour
     {
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
+
+        if (!int.TryParse(stepsMovedText.text, out stepsMoved))
+        {
+            stepsMoved = 0;
+        }
+
         StartCoroutine(IncreaseSpeedAfterDelay(currentSquare));
     }
 
@@ -214,28 +230,12 @@ public class MathEquationGenerator : MonoBehaviour
 
     void LogEquationData()
     {
-        // Store the previous number line location before any changes
-        float previousLocation;
-        if (!float.TryParse(answerText.text, out previousLocation))
-        {
-            previousLocation = 0; // Default to 0 if parsing fails
-        }
-
-        // User's answer (steps moved)
-        int stepsMoved;
-        if (!int.TryParse(answerText.text, out stepsMoved))
-        {
-            stepsMoved = 0; // Default to 0 if parsing fails
-        }
-
-        int correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
-        int numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
+        // **CALCULATE FINAL NUMBER LINE LOCATION**
+        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
         string result = answerMatched ? "Correct" : "Incorrect";
 
         string json = $"{{ \"question\":\"{equationText.text.Replace(" = ?", "")}\", \"numberLineLocation\":{numberLineLocation}, \"correctStepsToMove\":{correctStepsToMove}, \"stepsMoved\":{stepsMoved}, \"result\":\"{result}\" }}";
 
         Debug.Log(json);
     }
-
-
 }
