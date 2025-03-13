@@ -23,20 +23,19 @@ public class MathEquationGenerator : MonoBehaviour
     private GameObject currentSquare;
     private bool answerMatched = false;
     private bool speedIncreased = false;
+    private bool isFirstEquation = true; // FIX: Added this variable
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
-
     private float moveSpeed = 0.3f;
     public float speedMultiplier = 1f;
 
+    // **New Variables**
     private float previousLocation;
     private int correctStepsToMove;
     private int stepsMoved;
     private int numberLineLocation;
     public TMP_Text stepsMovedText;
-
-    private bool isFirstEquation = true; // ✅ Track the first equation generation
 
     void Start()
     {
@@ -45,8 +44,8 @@ public class MathEquationGenerator : MonoBehaviour
         resultText.text = "";
         audioSource = GetComponent<AudioSource>();
 
-        leftButton.onClick.AddListener(() => OnButtonPressed());
-        rightButton.onClick.AddListener(() => OnButtonPressed());
+        leftButton.onClick.AddListener(() => OnButtonPressed(-1));
+        rightButton.onClick.AddListener(() => OnButtonPressed(1));
 
         Invoke("GenerateNewEquation", 0.1f);
     }
@@ -92,41 +91,53 @@ public class MathEquationGenerator : MonoBehaviour
 
         if (!float.TryParse(answerText.text, out previousLocation))
         {
-            Debug.Log(previousLocation);
             previousLocation = 0f;
         }
 
+        int num1, num2;
         do
         {
-            int num1 = Random.Range(1, 10);
-            int num2 = Random.Range(1, 10);
+            num1 = UnityEngine.Random.Range(1, 10);
+            num2 = UnityEngine.Random.Range(1, 10);
 
-            if (Random.value > 0.5f)
-            {
-                correctAnswer = num1 + num2;
-                equationText.text = num1 + " + " + num2 + " = ?";
-            }
-            else
-            {
-                correctAnswer = num1 - num2;
-                equationText.text = num1 + " - " + num2 + " = ?";
-            }
+            correctAnswer = UnityEngine.Random.value > 0.5f ? num1 + num2 : num1 - num2;
+            equationText.text = correctAnswer == num1 + num2 ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
 
-        } while (Mathf.Abs(correctAnswer - previousLocation) <= 3);
+        } while (Mathf.Abs(correctAnswer - previousLocation) < 2); // FIX: Prevent small movement jumps
 
         correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
-
         answerMatched = false;
         speedIncreased = false;
         GenerateSquare(correctStepsToMove);
 
-        // ✅ Call StartGame() only on first equation generation
         if (isFirstEquation)
         {
             WebGLBridge.Instance.StartGame();
             isFirstEquation = false;
         }
     }
+
+    void LogEquationData()
+    {
+        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
+        string result = answerMatched ? "Correct" : "Incorrect";
+
+        // Creating JSON for equation data
+        string equationJson = $"{{ \"question\":\"{equationText.text.Replace(" = ?", "")}\", " +
+            $"\"numberLineLocation\":{numberLineLocation}, " +
+            $"\"correctStepsToMove\":{correctStepsToMove}, " +
+            $"\"stepsMoved\":{stepsMoved}, " +
+            $"\"result\":\"{result}\" }}";
+
+        Debug.Log($"📜 Equation JSON: {equationJson}");
+
+        // Ensuring JSON formatting by escaping it properly
+        string formattedEquationJson = $"[{equationJson}]";  // Wrapping in an array to append in attemptedWords list
+
+        // Sending score and formatted JSON data
+        WebGLBridge.Instance.UpdateScore(ScoreManager.Instance.GetScore(), formattedEquationJson);
+    }
+
 
     void ResetSpeedMultiplier()
     {
@@ -177,6 +188,7 @@ public class MathEquationGenerator : MonoBehaviour
             resultText.color = new Color(0.8f, 0.98f, 0f);
             audioSource.PlayOneShot(correctSound);
             ScoreManager.Instance.IncreaseScoreOnPackageReceived();
+            LogEquationData();
         }
         else
         {
@@ -184,10 +196,10 @@ public class MathEquationGenerator : MonoBehaviour
             resultText.color = Color.red;
             SpawnExplosion(square.transform.position);
             audioSource.PlayOneShot(wrongSound);
+            LogEquationData();
             yield return new WaitForSeconds(0.5f);
         }
 
-        LogEquationData();
         GenerateNewEquation();
     }
 
@@ -203,7 +215,7 @@ public class MathEquationGenerator : MonoBehaviour
         resultText.text = "";
     }
 
-    void OnButtonPressed()
+    void OnButtonPressed(int direction)
     {
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
@@ -212,6 +224,9 @@ public class MathEquationGenerator : MonoBehaviour
         {
             stepsMoved = 0;
         }
+
+        stepsMoved += direction; // FIX: Ensure stepsMoved is updated correctly
+        stepsMovedText.text = stepsMoved.ToString();
 
         StartCoroutine(IncreaseSpeedAfterDelay(currentSquare));
     }
@@ -229,18 +244,5 @@ public class MathEquationGenerator : MonoBehaviour
     public void SetSpeedMultiplier(float multiplier)
     {
         speedMultiplier = Mathf.Max(0.1f, multiplier);
-    }
-
-    void LogEquationData()
-    {
-        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
-        string result = answerMatched ? "Correct" : "Incorrect";
-
-        string json = $"{{ \"question\":\"{equationText.text.Replace(" = ?", "")}\", \"numberLineLocation\":{numberLineLocation}, \"correctStepsToMove\":{correctStepsToMove}, \"stepsMoved\":{stepsMoved}, \"result\":\"{result}\" }}";
-
-        Debug.Log(json);
-
-        // ✅ Update the score when equation data is logged
-        WebGLBridge.Instance.UpdateScore(ScoreManager.Instance.GetScore());
     }
 }

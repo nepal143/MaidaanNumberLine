@@ -21,12 +21,12 @@ public class WebGLBridge : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) 
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // ✅ Persisting across scenes
         }
-        else 
+        else
         {
             Destroy(gameObject);
         }
@@ -49,7 +49,7 @@ public class WebGLBridge : MonoBehaviour
         {
             Debug.LogError("❌ JSON Parse Error: " + e.Message);
         }
-    } 
+    }
 
     public void StartGame()
     {
@@ -66,16 +66,19 @@ public class WebGLBridge : MonoBehaviour
         StartCoroutine(SendGameData("start-time", json));
     }
 
-    public void UpdateScore(int score)
+    public void UpdateScore(int score, string jsonData)
     {
-        // 🔄 Manually constructing JSON
+        // 🔄 Constructing JSON with properly formatted extra data
         string json = $"{{" +
             $"\"userId\": \"{userData.userId}\", " +
             $"\"tournamentId\": \"{userData.tournamentId}\", " +
             $"\"roundId\": \"{userData.roundId}\", " +
-            $"\"score\": {score}" +
+            $"\"score\": {score}, " +
+            $"\"attemptedWord\": {jsonData}" +  // ✅ Properly formatted JSON
             $"}}";
-        if(!userData.isTrial){
+
+        if (!userData.isTrial)
+        {
             StartCoroutine(SendGameData("update-score", json));
         }
     }
