@@ -10791,6 +10791,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe8f84273ddf7fd4b8b64cee90b1a253, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  trialGameObject: {fileID: 1438628161}
+  gameStartObject: {fileID: 1863818868}
 --- !u!4 &1264167116
 Transform:
   m_ObjectHideFlags: 0

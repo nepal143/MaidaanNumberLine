@@ -16,6 +16,10 @@ public class UserData
 public class WebGLBridge : MonoBehaviour
 {
     public static WebGLBridge Instance;
+    public GameObject trialGameObject; // ✅ Assign in Inspector (UI for trial mode)
+    public GameObject gameStartObject; // ✅ Assign the GameObject containing `GameStartManager`
+
+    private GameStartManager gameStartManager;
     private string baseUrl = "http://localhost:8008/api/v1/webgl-game";
     private UserData userData = new UserData(); // ✅ Centralized user data storage
 
@@ -24,7 +28,7 @@ public class WebGLBridge : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // ✅ Persisting across scenes
+            DontDestroyOnLoad(gameObject); // ✅ Persist across scenes
         }
         else
         {
@@ -35,6 +39,20 @@ public class WebGLBridge : MonoBehaviour
     void Start()
     {
         Debug.Log("✅ WebGLBridge Initialized");
+
+        // ✅ Get GameStartManager from the assigned GameObject
+        if (gameStartObject != null)
+        {
+            gameStartManager = gameStartObject.GetComponent<GameStartManager>();
+            if (gameStartManager == null)
+            {
+                Debug.LogError("❌ GameStartManager component is missing on the assigned GameObject!");
+            }
+        }
+        else
+        {
+            Debug.LogError("❌ GameStartObject is not assigned in the Inspector!");
+        }
     }
 
     public void ReceiveDataFromReact(string jsonData)
@@ -44,6 +62,20 @@ public class WebGLBridge : MonoBehaviour
         {
             userData = JsonUtility.FromJson<UserData>(jsonData);
             Debug.Log($"✅ Stored User Data -> User ID: {userData.userId}, Tournament: {userData.tournamentId}, Round: {userData.roundId}, IsTrial: {userData.isTrial}");
+
+            // ✅ Enable/Disable trialGameObject based on isTrial
+            if (trialGameObject != null)
+            {
+                trialGameObject.SetActive(userData.isTrial);
+                Debug.Log($"🎮 Trial Mode: {userData.isTrial} -> trialGameObject {(userData.isTrial ? "ENABLED" : "DISABLED")}");
+            }
+
+            // ✅ If NOT a trial game, start the game automatically
+            if (!userData.isTrial && gameStartManager != null)
+            {
+                gameStartManager.StartGame();
+                Debug.Log("🚀 Starting main game since it's NOT a trial.");
+            }
         }
         catch (Exception e)
         {

@@ -16,7 +16,7 @@ public class GameStartManager : MonoBehaviour
         }
     }
 
-    void StartGame()
+    public void StartGame()
     {
         // Disable the start button
         startButton.gameObject.SetActive(false);
