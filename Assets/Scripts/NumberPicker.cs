@@ -12,7 +12,7 @@ public class NumberPickerUI : MonoBehaviour
     public Button clearButton; // Clear button
     public Button clearButton1; 
 
-    private string currentNumber = "Steps To Move"; // Holds the entered number
+    private string currentNumber = "Steps"; // Holds the entered number
 
     void Start()
     { 
@@ -38,8 +38,8 @@ public class NumberPickerUI : MonoBehaviour
 
     void AddDigit(string digit)
     {
-        // Remove "Steps To Move" when first typing
-        if (currentNumber == "Steps To Move")
+        // Remove "Steps" when first typing
+        if (currentNumber == "Steps")
             currentNumber = "";
 
         // Prevent multiple decimals
@@ -65,7 +65,7 @@ public class NumberPickerUI : MonoBehaviour
         if (currentNumber.Length > 1)
             currentNumber = currentNumber.Substring(0, currentNumber.Length - 1);
         else
-            currentNumber = "Steps To Move"; // Reset to default if empty
+            currentNumber = "Steps"; // Reset to default if empty
 
         UpdateDisplay();
     }
@@ -78,7 +78,7 @@ public class NumberPickerUI : MonoBehaviour
 
     void ClearInput()
     {
-        currentNumber = "Steps To Move";
+        currentNumber = "Steps";
         UpdateDisplay();
     }
 
