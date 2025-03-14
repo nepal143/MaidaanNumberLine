@@ -103,7 +103,7 @@ public class MathEquationGenerator : MonoBehaviour
             correctAnswer = UnityEngine.Random.value > 0.5f ? num1 + num2 : num1 - num2;
             equationText.text = correctAnswer == num1 + num2 ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
 
-        } while (Mathf.Abs(correctAnswer - previousLocation) < 2); // FIX: Prevent small movement jumps
+        } while (Mathf.Abs(correctAnswer - previousLocation) < 3); // FIX: Prevent small movement jumps
 
         correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
         answerMatched = false;
@@ -119,7 +119,7 @@ public class MathEquationGenerator : MonoBehaviour
 
     void LogEquationData()
     {
-        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
+
         string result = answerMatched ? "Correct" : "Incorrect";
 
         // Creating JSON for equation data
@@ -217,6 +217,7 @@ public class MathEquationGenerator : MonoBehaviour
 
     void OnButtonPressed(int direction)
     {
+        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
 

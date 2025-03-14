@@ -108,12 +108,13 @@ public class WebGLBridge : MonoBehaviour
     {
         string startTime = DateTime.UtcNow.ToString("o");
 
-        // 🔄 Manually constructing JSON
+        // 🔄 Manually constructing JSON (with `isTrial` added)
         string json = $"{{" +
             $"\"userId\": \"{userData.userId}\", " +
             $"\"tournamentId\": \"{userData.tournamentId}\", " +
             $"\"roundId\": \"{userData.roundId}\", " +
-            $"\"startTime\": \"{startTime}\"" +
+            $"\"startTime\": \"{startTime}\", " +
+            $"\"isTrial\": {userData.isTrial.ToString().ToLower()}" +  // ✅ Added here
             $"}}";
 
         StartCoroutine(SendGameData("start-time", json));
