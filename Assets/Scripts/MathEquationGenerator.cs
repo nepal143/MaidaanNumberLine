@@ -36,6 +36,7 @@ public class MathEquationGenerator : MonoBehaviour
     private int stepsMoved;
     private int numberLineLocation;
     public TMP_Text stepsMovedText;
+    public int difficultyLevel = 6;
 
     void Start()
     {
@@ -74,48 +75,81 @@ public class MathEquationGenerator : MonoBehaviour
         }
     }
 
-        void GenerateNewEquation()
+    void GenerateNewEquation()
+    {
+        ResetSpeedMultiplier();
+        StartCoroutine(ClearMessageAfterDelay());
+
+        if (currentSquare != null)
         {
-            ResetSpeedMultiplier();
-            StartCoroutine(ClearMessageAfterDelay());
+            Destroy(currentSquare);
+        }
 
-            if (currentSquare != null)
+        leftButton.gameObject.SetActive(true);
+        rightButton.gameObject.SetActive(true);
+        leftButton.interactable = true;
+        rightButton.interactable = true;
+
+        if (!float.TryParse(answerText.text, out previousLocation))
+        {
+            previousLocation = 0f;
+        }
+
+        int num1 = 0, num2 = 0, num3 = 0;
+        correctAnswer = 0;
+        bool isAddition;
+
+        do
+        {
+            if (difficultyLevel == 4)
             {
-                Destroy(currentSquare);
+                // Single number equation (e.g., "5")
+                correctAnswer = UnityEngine.Random.Range(1, 10);
+                equationText.text = $"{correctAnswer}";
             }
-
-            leftButton.gameObject.SetActive(true);
-            rightButton.gameObject.SetActive(true);
-            leftButton.interactable = true;
-            rightButton.interactable = true;
-
-            if (!float.TryParse(answerText.text, out previousLocation))
+            else if (difficultyLevel == 6)
             {
-                previousLocation = 0f;
-            }
-
-            int num1, num2;
-            do
-            {
+                // Two-number equation with random addition or subtraction
                 num1 = UnityEngine.Random.Range(1, 10);
                 num2 = UnityEngine.Random.Range(1, 10);
+                isAddition = UnityEngine.Random.value > 0.5f;
 
-                correctAnswer = UnityEngine.Random.value > 0.5f ? num1 + num2 : num1 - num2;
-                equationText.text = correctAnswer == num1 + num2 ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
-
-            } while (Mathf.Abs(correctAnswer - previousLocation) < 3);
-
-            correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
-            answerMatched = false;
-            speedIncreased = false;
-            GenerateSquare(correctStepsToMove);
-
-            if (isFirstEquation)
+                correctAnswer = isAddition ? num1 + num2 : num1 - num2;
+                equationText.text = isAddition ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
+            }
+            else if (difficultyLevel == 8)
             {
-                WebGLBridge.Instance.StartGame();
-                isFirstEquation = false;
+                // Three-number equation with random operations
+                num1 = UnityEngine.Random.Range(1, 5);
+                num2 = UnityEngine.Random.Range(1, 5);
+                num3 = UnityEngine.Random.Range(1, 5);
+                isAddition = UnityEngine.Random.value > 0.5f;
+
+                if (isAddition)
+                {
+                    correctAnswer = num1 + num2 + num3;
+                    equationText.text = $"{num1} + {num2} + {num3} = ?";
+                }
+                else
+                {
+                    correctAnswer = num1 + num2 - num3;
+                    equationText.text = $"{num1} + {num2} - {num3} = ?";
+                }
             }
         }
+        while (Mathf.Abs(correctAnswer - previousLocation) < 3); // Ensure difference is at least 3
+
+        correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
+        answerMatched = false;
+        speedIncreased = false;
+        GenerateSquare(correctStepsToMove);
+
+        if (isFirstEquation)
+        {
+            WebGLBridge.Instance.StartGame();
+            isFirstEquation = false;
+        }
+    }
 
     void LogEquationData()
     {
@@ -223,7 +257,7 @@ public class MathEquationGenerator : MonoBehaviour
             stepsMoved = 0;
         }
 
-        stepsMoved *= direction; 
+        stepsMoved *= direction;
 
         numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
 
