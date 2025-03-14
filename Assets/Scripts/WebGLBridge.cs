@@ -75,8 +75,15 @@ public class WebGLBridge : MonoBehaviour
             }
             else
             {
-                StartGame();
-                Debug.Log("🚀 Starting main game since it's NOT a trial.");
+                if (gameStartManager != null)
+                {
+                    gameStartManager.StartGame(); // ✅ Calls StartGame() from GameStartManager
+                    Debug.Log("🚀 Starting main game via GameStartManager.");
+                }
+                else
+                {
+                    Debug.LogError("❌ GameStartManager is not assigned!");
+                }
             }
 
             gameStarted = true; // ✅ Ensure StartGame is only called once
@@ -97,21 +104,6 @@ public class WebGLBridge : MonoBehaviour
         {
             Debug.LogError("❌ JSON Parse Error: " + e.Message);
         }
-    }
-
-    public void StartGame()
-    {
-        string startTime = DateTime.UtcNow.ToString("o");
-
-        // 🔄 Manually constructing JSON
-        string json = $"{{" +
-            $"\"userId\": \"{userData.userId}\", " +
-            $"\"tournamentId\": \"{userData.tournamentId}\", " +
-            $"\"roundId\": \"{userData.roundId}\", " +
-            $"\"startTime\": \"{startTime}\"" +
-            $"}}";
-
-        StartCoroutine(SendGameData("start-time", json));
     }
 
     public void UpdateScore(int score, string attemptedWord)
