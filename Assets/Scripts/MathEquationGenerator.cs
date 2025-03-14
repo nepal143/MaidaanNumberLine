@@ -23,7 +23,7 @@ public class MathEquationGenerator : MonoBehaviour
     private GameObject currentSquare;
     private bool answerMatched = false;
     private bool speedIncreased = false;
-    private bool isFirstEquation = true; // FIX: Added this variable
+    private bool isFirstEquation = true;
 
     private Vector3 startPosition = new Vector3(0, 2.5f, 0);
     public float endYPosition = -2.5f;
@@ -103,7 +103,7 @@ public class MathEquationGenerator : MonoBehaviour
             correctAnswer = UnityEngine.Random.value > 0.5f ? num1 + num2 : num1 - num2;
             equationText.text = correctAnswer == num1 + num2 ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
 
-        } while (Mathf.Abs(correctAnswer - previousLocation) < 3); // FIX: Prevent small movement jumps
+        } while (Mathf.Abs(correctAnswer - previousLocation) < 3);
 
         correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
         answerMatched = false;
@@ -119,25 +119,23 @@ public class MathEquationGenerator : MonoBehaviour
 
     void LogEquationData()
     {
-
         string result = answerMatched ? "Correct" : "Incorrect";
 
-        // Creating JSON for equation data
+        // Updated JSON to include correctAnswer and previousLocation
         string equationJson = $"{{ \"question\":\"{equationText.text.Replace(" = ?", "")}\", " +
             $"\"numberLineLocation\":{numberLineLocation}, " +
             $"\"correctStepsToMove\":{correctStepsToMove}, " +
             $"\"stepsMoved\":{stepsMoved}, " +
+            $"\"correctAnswer\":{correctAnswer}, " + // New field added
+            $"\"previousLocation\":{previousLocation}, " + // New field added
             $"\"result\":\"{result}\" }}";
 
         Debug.Log($"📜 Equation JSON: {equationJson}");
 
-        // Ensuring JSON formatting by escaping it properly
-        string formattedEquationJson = $"[{equationJson}]";  // Wrapping in an array to append in attemptedWords list
+        string formattedEquationJson = $"[{equationJson}]";
 
-        // Sending score and formatted JSON data
         WebGLBridge.Instance.UpdateScore(ScoreManager.Instance.GetScore(), formattedEquationJson);
     }
-
 
     void ResetSpeedMultiplier()
     {
@@ -227,15 +225,14 @@ public class MathEquationGenerator : MonoBehaviour
 
         stepsMoved *= direction; 
 
-        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved); // Now it uses the updated value
+        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
 
-        stepsMovedText.text = stepsMoved.ToString(); // Update UI text after changing stepsMoved
+        stepsMovedText.text = stepsMoved.ToString();
 
         Debug.Log(stepsMoved);
 
         StartCoroutine(IncreaseSpeedAfterDelay(currentSquare));
     }
-
 
     IEnumerator IncreaseSpeedAfterDelay(GameObject packageAtButtonPress)
     {
