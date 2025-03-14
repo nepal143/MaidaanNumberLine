@@ -74,48 +74,48 @@ public class MathEquationGenerator : MonoBehaviour
         }
     }
 
-    void GenerateNewEquation()
-    {
-        ResetSpeedMultiplier();
-        StartCoroutine(ClearMessageAfterDelay());
-
-        if (currentSquare != null)
+        void GenerateNewEquation()
         {
-            Destroy(currentSquare);
+            ResetSpeedMultiplier();
+            StartCoroutine(ClearMessageAfterDelay());
+
+            if (currentSquare != null)
+            {
+                Destroy(currentSquare);
+            }
+
+            leftButton.gameObject.SetActive(true);
+            rightButton.gameObject.SetActive(true);
+            leftButton.interactable = true;
+            rightButton.interactable = true;
+
+            if (!float.TryParse(answerText.text, out previousLocation))
+            {
+                previousLocation = 0f;
+            }
+
+            int num1, num2;
+            do
+            {
+                num1 = UnityEngine.Random.Range(1, 10);
+                num2 = UnityEngine.Random.Range(1, 10);
+
+                correctAnswer = UnityEngine.Random.value > 0.5f ? num1 + num2 : num1 - num2;
+                equationText.text = correctAnswer == num1 + num2 ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
+
+            } while (Mathf.Abs(correctAnswer - previousLocation) < 3);
+
+            correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
+            answerMatched = false;
+            speedIncreased = false;
+            GenerateSquare(correctStepsToMove);
+
+            if (isFirstEquation)
+            {
+                WebGLBridge.Instance.StartGame();
+                isFirstEquation = false;
+            }
         }
-
-        leftButton.gameObject.SetActive(true);
-        rightButton.gameObject.SetActive(true);
-        leftButton.interactable = true;
-        rightButton.interactable = true;
-
-        if (!float.TryParse(answerText.text, out previousLocation))
-        {
-            previousLocation = 0f;
-        }
-
-        int num1, num2;
-        do
-        {
-            num1 = UnityEngine.Random.Range(1, 10);
-            num2 = UnityEngine.Random.Range(1, 10);
-
-            correctAnswer = UnityEngine.Random.value > 0.5f ? num1 + num2 : num1 - num2;
-            equationText.text = correctAnswer == num1 + num2 ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
-
-        } while (Mathf.Abs(correctAnswer - previousLocation) < 3);
-
-        correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
-        answerMatched = false;
-        speedIncreased = false;
-        GenerateSquare(correctStepsToMove);
-
-        if (isFirstEquation)
-        {
-            WebGLBridge.Instance.StartGame();
-            isFirstEquation = false;
-        }
-    }
 
     void LogEquationData()
     {
