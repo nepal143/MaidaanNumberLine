@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class GameStartManager : MonoBehaviour
 {
     public Button startButton;
+    public Button startButton1;
     public List<GameObject> objectsToEnable;
     public GameObject gameTitle; // Assign the title GameObject here
 
@@ -13,6 +14,10 @@ public class GameStartManager : MonoBehaviour
         if (startButton != null)
         {
             startButton.onClick.AddListener(StartGame);
+        }
+        if (startButton1 != null)
+        {
+            startButton1.onClick.AddListener(StartGame);
         }
     }
 

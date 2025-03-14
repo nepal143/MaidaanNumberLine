@@ -23,8 +23,6 @@ public class WebGLBridge : MonoBehaviour
     private string baseUrl = "http://localhost:8008/api/v1/webgl-game";
     private UserData userData = new UserData(); // ✅ Centralized user data storage
 
-    private bool hasGameStarted = false; // ✅ To prevent multiple calls to StartGame()
-
     void Awake()
     {
         if (Instance == null)
@@ -68,32 +66,43 @@ public class WebGLBridge : MonoBehaviour
         {
             userData = JsonUtility.FromJson<UserData>(jsonData);
             Debug.Log($"✅ Stored User Data -> User ID: {userData.userId}, Tournament: {userData.tournamentId}, Round: {userData.roundId}, IsTrial: {userData.isTrial}");
+
+            // ✅ Enable/Disable trialGameObject based on isTrial
+            if (trialGameObject != null)
+            {
+                trialGameObject.SetActive(userData.isTrial);
+                Debug.Log($"🎮 Trial Mode: {userData.isTrial} -> trialGameObject {(userData.isTrial ? "ENABLED" : "DISABLED")}");
+            }
+
+            // ✅ If NOT a trial game, start the game automatically
+            if (!userData.isTrial)
+            {
+                StartCoroutine(StartGameWithDelay());
+                Debug.Log("🚀 Starting main game since it's NOT a trial.");
+            }
         }
         catch (Exception e)
         {
             Debug.LogError("❌ JSON Parse Error: " + e.Message);
         }
     }
-
-    void Update()
+    IEnumerator StartGameWithDelay()
     {
-        if (userData != null)
-        {
-            // ✅ Enable/Disable Trial UI based on isTrial
-            if (trialGameObject != null && trialGameObject.activeSelf != userData.isTrial)
-            {
-                trialGameObject.SetActive(userData.isTrial);
-                Debug.Log($"🔄 Trial Mode Updated: {userData.isTrial} -> trialGameObject {(userData.isTrial ? "ENABLED" : "DISABLED")}");
-            }
+        yield return new WaitForSeconds(0.2f); // Small delay before starting the game
 
-            // ✅ Automatically start the game only once (if NOT trial)
-            if (!userData.isTrial && !hasGameStarted)
-            {
-                hasGameStarted = true; // Prevent multiple calls
-                StartGame();
-            }
+        // 🎯 Simulate the start button click instead of directly calling StartGame()
+        if (gameStartManager != null && gameStartManager.startButton1 != null)
+        {
+            gameStartManager.startButton1.onClick.Invoke();
+            Debug.Log("✅ Simulated Start Button Click.");
+        }
+        else
+        {
+            Debug.LogError("❌ Start button not found.");
         }
     }
+
+
 
     public void StartGame()
     {
@@ -108,17 +117,17 @@ public class WebGLBridge : MonoBehaviour
             $"}}";
 
         StartCoroutine(SendGameData("start-time", json));
-        Debug.Log("🚀 Main Game Started!");
     }
 
     public void UpdateScore(int score, string jsonData)
     {
+        // 🔄 Constructing JSON with properly formatted extra data
         string json = $"{{" +
             $"\"userId\": \"{userData.userId}\", " +
             $"\"tournamentId\": \"{userData.tournamentId}\", " +
             $"\"roundId\": \"{userData.roundId}\", " +
             $"\"score\": {score}, " +
-            $"\"attemptedWord\": {jsonData}" +
+            $"\"attemptedWord\": {jsonData}" +  // ✅ Properly formatted JSON
             $"}}";
 
         if (!userData.isTrial)
@@ -129,8 +138,9 @@ public class WebGLBridge : MonoBehaviour
 
     public void EndGame()
     {
-        string endpoint = userData.isTrial ? "end-trial" : "end-game";
+        string endpoint = userData.isTrial ? "end-trial" : "end-game"; // ✅ Dynamic API selection
 
+        // 🔄 Manually constructing JSON
         string json = $"{{" +
             $"\"userId\": \"{userData.userId}\", " +
             $"\"tournamentId\": \"{userData.tournamentId}\", " +
