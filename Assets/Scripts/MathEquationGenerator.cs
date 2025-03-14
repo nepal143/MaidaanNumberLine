@@ -217,7 +217,6 @@ public class MathEquationGenerator : MonoBehaviour
 
     void OnButtonPressed(int direction)
     {
-        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved);
         leftButton.gameObject.SetActive(false);
         rightButton.gameObject.SetActive(false);
 
@@ -226,11 +225,17 @@ public class MathEquationGenerator : MonoBehaviour
             stepsMoved = 0;
         }
 
-        stepsMoved += direction; // FIX: Ensure stepsMoved is updated correctly
-        stepsMovedText.text = stepsMoved.ToString();
+        stepsMoved *= direction; 
+
+        numberLineLocation = Mathf.RoundToInt(previousLocation + stepsMoved); // Now it uses the updated value
+
+        stepsMovedText.text = stepsMoved.ToString(); // Update UI text after changing stepsMoved
+
+        Debug.Log(stepsMoved);
 
         StartCoroutine(IncreaseSpeedAfterDelay(currentSquare));
     }
+
 
     IEnumerator IncreaseSpeedAfterDelay(GameObject packageAtButtonPress)
     {
