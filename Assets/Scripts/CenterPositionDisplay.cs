@@ -10,11 +10,12 @@ public class CenterPositionDisplay : MonoBehaviour
     public float animationSpeed = 2f;
 
     private float targetPosition = 0f;
+    private int initialPosition = 0;
     private bool isAnimating = false;
 
     void Start()
     {
-        UpdateText(targetPosition);
+        UpdateText(initialPosition);
     }
 
     public void MoveRight()
@@ -51,7 +52,10 @@ public class CenterPositionDisplay : MonoBehaviour
 
     void UpdateText(float value)
     {
-        positionText.text = $"{value:F2}";
+        if (Mathf.Approximately(value % 1, 0)) // Check if it's a whole number
+            positionText.text = $"{(int)value}";
+        else
+            positionText.text = $"{value:F2}";
     }
 
     IEnumerator AnimateText()

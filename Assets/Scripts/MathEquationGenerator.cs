@@ -40,7 +40,7 @@ public class MathEquationGenerator : MonoBehaviour
     void Start()
     {
         equationText.text = "";
-        answerText.text = "0.00";
+        answerText.text = "0";
         resultText.text = "";
         audioSource = GetComponent<AudioSource>();
 
