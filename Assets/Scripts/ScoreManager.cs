@@ -4,7 +4,7 @@ using TMPro;
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance { get; private set; }
-    private int score;
+    private int score = 0; // Ensure score starts at 0
     public TMP_Text scoreText;
 
     private void Awake()
@@ -22,7 +22,7 @@ public class ScoreManager : MonoBehaviour
 
     private void Start()
     {
-        UpdateScoreText();
+        UpdateScoreText(); // Ensures score starts as "Score: 0"
     }
 
     public void IncreaseScore(int amount)
@@ -47,6 +47,10 @@ public class ScoreManager : MonoBehaviour
         if (scoreText != null)
         {
             scoreText.text = "Score: " + score;
+        }
+        else
+        {
+            Debug.LogWarning("Score Text reference is missing!");
         }
     }
 }

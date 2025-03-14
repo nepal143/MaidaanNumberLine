@@ -208,7 +208,7 @@ public class MathEquationGenerator : MonoBehaviour
 
             Vector3 newPos = square.transform.position;
             newPos.y -= moveSpeed * speedMultiplier * Time.deltaTime;
-            newPos.x = userXOffset;
+            newPos.x = userXOffset/2;
             square.transform.position = newPos;
 
             yield return null;
