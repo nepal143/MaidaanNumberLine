@@ -36,7 +36,8 @@ public class MathEquationGenerator : MonoBehaviour
     private int stepsMoved;
     private int numberLineLocation;
     public TMP_Text stepsMovedText;
-    public int difficultyLevel = 6;
+    private int difficultyLevel;
+
 
     void Start()
     {
@@ -49,6 +50,7 @@ public class MathEquationGenerator : MonoBehaviour
         rightButton.onClick.AddListener(() => OnButtonPressed(1));
 
         Invoke("GenerateNewEquation", 0.1f);
+        difficultyLevel = WebGLBridge.Instance != null ? WebGLBridge.Instance.baseDifficulty : 4;
     }
 
     void Update()
@@ -208,7 +210,7 @@ public class MathEquationGenerator : MonoBehaviour
 
             Vector3 newPos = square.transform.position;
             newPos.y -= moveSpeed * speedMultiplier * Time.deltaTime;
-            newPos.x = userXOffset/2;
+            newPos.x = userXOffset / 2;
             square.transform.position = newPos;
 
             yield return null;

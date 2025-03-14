@@ -11,6 +11,7 @@ public class UserData
     public string tournamentId;
     public string roundId;
     public bool isTrial;
+    public int baseDifficulty ; 
 }
 
 public class WebGLBridge : MonoBehaviour
@@ -23,11 +24,13 @@ public class WebGLBridge : MonoBehaviour
     private string baseUrl = "http://localhost:8008/api/v1/webgl-game";
     private UserData userData = new UserData(); // ✅ Centralized user data storage
 
+    public int baseDifficulty ; 
+
     void Awake()
     {
         if (Instance == null)
         {
-            Instance = this;
+            Instance = this; 
             DontDestroyOnLoad(gameObject); // ✅ Persist across scenes
         }
         else
@@ -66,7 +69,7 @@ public class WebGLBridge : MonoBehaviour
         {
             userData = JsonUtility.FromJson<UserData>(jsonData);
             Debug.Log($"✅ Stored User Data -> User ID: {userData.userId}, Tournament: {userData.tournamentId}, Round: {userData.roundId}, IsTrial: {userData.isTrial}");
-
+            baseDifficulty = userData.baseDifficulty ; 
             // ✅ Enable/Disable trialGameObject based on isTrial
             if (trialGameObject != null)
             {
