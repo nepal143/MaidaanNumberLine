@@ -156,42 +156,96 @@ public class MathEquationGenerator : MonoBehaviour
     void GenerateRandomEquation(int numberRange)
     {
         bool validEquation = false;
+        float elapsedTime = Time.timeSinceLevelLoad;
 
-        Debug.Log($"🛠️ Generating equation | Number Range: {numberRange} | Previous Location: {previousLocation}");
+        Debug.Log($"🛠️ Generating equation | Number Range: {numberRange} | Previous Location: {previousLocation} | Elapsed Time: {elapsedTime}");
 
         while (!validEquation)
         {
             int num1 = 0, num2 = 0, num3 = 0;
             correctAnswer = 0;
-            bool isAddition = UnityEngine.Random.value > 0.5f; // ✅ Declare isAddition properly
+            bool isAddition = UnityEngine.Random.value > 0.5f;
+            bool isMultiplication = UnityEngine.Random.value > 0.5f;
+
+            int maxAdditionSubtraction = numberRange;  // Limit for addition/subtraction
+            int maxMultiplication = Mathf.FloorToInt(Mathf.Sqrt(numberRange)); // Separate limit for multiplication
 
             if (difficultyLevel == 4)
             {
-                correctAnswer = UnityEngine.Random.Range(1, numberRange);
-                equationText.text = $"{correctAnswer}";
+                if (elapsedTime < 30)
+                {
+                    correctAnswer = UnityEngine.Random.Range(1, 20);
+                    equationText.text = $"{correctAnswer}";
+                }
+                else if (elapsedTime < 60)
+                {
+                    correctAnswer = UnityEngine.Random.Range(1, 30);
+                    equationText.text = $"{correctAnswer}";
+                }
+                else
+                {
+                    num1 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num2 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    correctAnswer = isMultiplication ? num1 * num2 : isAddition ? num1 + num2 : num1 - num2;
+                    equationText.text = isMultiplication ? $"{num1} × {num2} = ?" :
+                                        isAddition ? $"{num1} + {num2} = ?" :
+                                                     $"{num1} - {num2} = ?";
+                }
             }
             else if (difficultyLevel == 6)
             {
-                num1 = UnityEngine.Random.Range(1, numberRange);
-                num2 = UnityEngine.Random.Range(1, numberRange);
-                correctAnswer = isAddition ? num1 + num2 : num1 - num2;
-                equationText.text = isAddition ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
+                if (elapsedTime < 30)
+                {
+                    correctAnswer = UnityEngine.Random.Range(1, 30);
+                    equationText.text = $"{correctAnswer}";
+                }
+                else if (elapsedTime < 120)
+                {
+                    num1 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num2 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    correctAnswer = isMultiplication ? num1 * num2 : isAddition ? num1 + num2 : num1 - num2;
+                    equationText.text = isMultiplication ? $"{num1} × {num2} = ?" :
+                                        isAddition ? $"{num1} + {num2} = ?" :
+                                                     $"{num1} - {num2} = ?";
+                }
+                else
+                {
+                    num1 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num2 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num3 = UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    correctAnswer = isMultiplication ? num1 * num2 + num3 : num1 + num2 - num3;
+                    equationText.text = isMultiplication ? $"{num1} × {num2} + {num3} = ?" :
+                                                         $"{num1} + {num2} - {num3} = ?";
+                }
             }
             else if (difficultyLevel == 8)
             {
-                num1 = UnityEngine.Random.Range(1, numberRange / 2);
-                num2 = UnityEngine.Random.Range(1, numberRange / 2);
-                num3 = UnityEngine.Random.Range(1, numberRange / 2);
-                correctAnswer = isAddition ? num1 + num2 + num3 : num1 + num2 - num3;
-                equationText.text = isAddition ? $"{num1} + {num2} + {num3} = ?" : $"{num1} + {num2} - {num3} = ?";
+                if (elapsedTime < 30)
+                {
+                    num1 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num2 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    correctAnswer = isMultiplication ? num1 * num2 : isAddition ? num1 + num2 : num1 - num2;
+                    equationText.text = isMultiplication ? $"{num1} × {num2} = ?" :
+                                        isAddition ? $"{num1} + {num2} = ?" :
+                                                     $"{num1} - {num2} = ?";
+                }
+                else
+                {
+                    num1 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num2 = isMultiplication ? UnityEngine.Random.Range(1, maxMultiplication) : UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    num3 = UnityEngine.Random.Range(1, maxAdditionSubtraction);
+                    correctAnswer = isMultiplication ? num1 * num2 + num3 : num1 + num2 - num3;
+                    equationText.text = isMultiplication ? $"{num1} × {num2} + {num3} = ?" :
+                                                         $"{num1} + {num2} - {num3} = ?";
+                }
             }
 
             Debug.Log($"🔢 Generated: {equationText.text} | Correct Answer: {correctAnswer}");
 
-            // ✅ Ensure at least a 3-step difference from previous location (Regenerate if too close)
+            // Ensure at least a 3-step difference from previous location
             if (Mathf.Abs(correctAnswer - previousLocation) > 3 && correctAnswer > 0)
             {
-                validEquation = true; // ✅ NOW it only exits the loop if valid
+                validEquation = true;
             }
             else
             {
@@ -202,6 +256,7 @@ public class MathEquationGenerator : MonoBehaviour
         correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
         Debug.Log($"✅ Final Equation: {equationText.text} | Steps to Move: {correctStepsToMove}");
     }
+
     void LogEquationData()
     {
         string result = answerMatched ? "Correct" : "Incorrect";
