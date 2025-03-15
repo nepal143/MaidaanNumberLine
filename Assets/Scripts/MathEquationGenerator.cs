@@ -108,7 +108,7 @@ public class MathEquationGenerator : MonoBehaviour
         if (WebGLBridge.Instance.isTrial && equationCount < 4)
         {
             SetTrialEquation();
-            equationCount++ ; 
+            equationCount++;
         }
         else
         {
@@ -133,17 +133,18 @@ public class MathEquationGenerator : MonoBehaviour
     void SetTrialEquation()
     {
         string[][] trialEquations =
-        {
-        new string[] { "1 + 2 = ?", "5 - 2 = ?", "4 + 3 = ?", "8 - 3 = ?" }, // Difficulty 4
-        new string[] { "10 + 5 = ?", "20 - 6 = ?", "7 + 8 = ?", "12 - 5 = ?" }, // Difficulty 6
-        new string[] { "3 + 2 + 4 = ?", "8 + 5 - 3 = ?", "6 + 4 + 7 = ?", "10 + 3 - 2 = ?" }  // Difficulty 8
-    };
+                {
+         new string[] { "2", "5", "3", "10" },//Difficulty 4
+         new string[] { "2", "5", "5 - 2 = ?", "8 + 4 = ?" }, // Difficulty 6
+         new string[] { "1 + 1 = ?", "2 + 3  = ?", "5 - 2 = ?", "10 + 3 - 1 = ?" }  // Difficulty 8
+         };
+
 
         int[][] trialAnswers =
-        {
-        new int[] { 3, 3, 7, 5 },
-        new int[] { 15, 14, 15, 7 },
-        new int[] { 9, 10, 17, 11 }
+               {
+        new int[] { 2, 5, 3, 10 },
+        new int[] { 2, 5, 3, 12 },
+        new int[] { 2, 5, 3, 12 }
     };
 
         int index = Mathf.Clamp(correctAnswersCount, 0, 3);
