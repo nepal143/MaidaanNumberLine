@@ -37,7 +37,8 @@ public class MathEquationGenerator : MonoBehaviour
     private int numberLineLocation;
     public TMP_Text stepsMovedText;
     private int difficultyLevel;
-
+    private int equationCount = 0;
+    private int correctAnswersCount = 0;
 
     void Start()
     {
@@ -97,53 +98,28 @@ public class MathEquationGenerator : MonoBehaviour
             previousLocation = 0f;
         }
 
-        int num1 = 0, num2 = 0, num3 = 0;
+        // ✅ Increase number range based on correct answers count (scales dynamically)
+        int numberRange = 10 + (correctAnswersCount / 5) * 3;
+        Debug.Log("number range :" + numberRange);
+
         correctAnswer = 0;
-        bool isAddition;
 
-        do
+        // **Trial Mode: First 4 Questions**
+        if (WebGLBridge.Instance.isTrial && equationCount < 4)
         {
-            if (difficultyLevel == 4)
-            {
-                // Single number equation (e.g., "5")
-                correctAnswer = UnityEngine.Random.Range(1, 10);
-                equationText.text = $"{correctAnswer}";
-            }
-            else if (difficultyLevel == 6)
-            {
-                // Two-number equation with random addition or subtraction
-                num1 = UnityEngine.Random.Range(1, 10);
-                num2 = UnityEngine.Random.Range(1, 10);
-                isAddition = UnityEngine.Random.value > 0.5f;
-
-                correctAnswer = isAddition ? num1 + num2 : num1 - num2;
-                equationText.text = isAddition ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
-            }
-            else if (difficultyLevel == 8)
-            {
-                // Three-number equation with random operations
-                num1 = UnityEngine.Random.Range(1, 5);
-                num2 = UnityEngine.Random.Range(1, 5);
-                num3 = UnityEngine.Random.Range(1, 5);
-                isAddition = UnityEngine.Random.value > 0.5f;
-
-                if (isAddition)
-                {
-                    correctAnswer = num1 + num2 + num3;
-                    equationText.text = $"{num1} + {num2} + {num3} = ?";
-                }
-                else
-                {
-                    correctAnswer = num1 + num2 - num3;
-                    equationText.text = $"{num1} + {num2} - {num3} = ?";
-                }
-            }
+            SetTrialEquation();
+            equationCount++ ; 
         }
-        while (Mathf.Abs(correctAnswer - previousLocation) < 3); // Ensure difference is at least 3
+        else
+        {
+            // ✅ Generate a valid equation
+            GenerateRandomEquation(numberRange);
+        }
 
         correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
         answerMatched = false;
         speedIncreased = false;
+
         GenerateSquare(correctStepsToMove);
 
         if (isFirstEquation)
@@ -153,6 +129,78 @@ public class MathEquationGenerator : MonoBehaviour
         }
     }
 
+
+    void SetTrialEquation()
+    {
+        string[][] trialEquations =
+        {
+        new string[] { "1 + 2 = ?", "5 - 2 = ?", "4 + 3 = ?", "8 - 3 = ?" }, // Difficulty 4
+        new string[] { "10 + 5 = ?", "20 - 6 = ?", "7 + 8 = ?", "12 - 5 = ?" }, // Difficulty 6
+        new string[] { "3 + 2 + 4 = ?", "8 + 5 - 3 = ?", "6 + 4 + 7 = ?", "10 + 3 - 2 = ?" }  // Difficulty 8
+    };
+
+        int[][] trialAnswers =
+        {
+        new int[] { 3, 3, 7, 5 },
+        new int[] { 15, 14, 15, 7 },
+        new int[] { 9, 10, 17, 11 }
+    };
+
+        int index = Mathf.Clamp(correctAnswersCount, 0, 3);
+        int difficultyIndex = (difficultyLevel == 4) ? 0 : (difficultyLevel == 6) ? 1 : 2;
+
+        equationText.text = trialEquations[difficultyIndex][index];
+        correctAnswer = trialAnswers[difficultyIndex][index];
+    }
+    void GenerateRandomEquation(int numberRange)
+    {
+        bool validEquation = false;
+
+        Debug.Log($"🛠️ Generating equation | Number Range: {numberRange} | Previous Location: {previousLocation}");
+
+        while (!validEquation)
+        {
+            int num1 = 0, num2 = 0, num3 = 0;
+            correctAnswer = 0;
+            bool isAddition = UnityEngine.Random.value > 0.5f; // ✅ Declare isAddition properly
+
+            if (difficultyLevel == 4)
+            {
+                correctAnswer = UnityEngine.Random.Range(1, numberRange);
+                equationText.text = $"{correctAnswer}";
+            }
+            else if (difficultyLevel == 6)
+            {
+                num1 = UnityEngine.Random.Range(1, numberRange);
+                num2 = UnityEngine.Random.Range(1, numberRange);
+                correctAnswer = isAddition ? num1 + num2 : num1 - num2;
+                equationText.text = isAddition ? $"{num1} + {num2} = ?" : $"{num1} - {num2} = ?";
+            }
+            else if (difficultyLevel == 8)
+            {
+                num1 = UnityEngine.Random.Range(1, numberRange / 2);
+                num2 = UnityEngine.Random.Range(1, numberRange / 2);
+                num3 = UnityEngine.Random.Range(1, numberRange / 2);
+                correctAnswer = isAddition ? num1 + num2 + num3 : num1 + num2 - num3;
+                equationText.text = isAddition ? $"{num1} + {num2} + {num3} = ?" : $"{num1} + {num2} - {num3} = ?";
+            }
+
+            Debug.Log($"🔢 Generated: {equationText.text} | Correct Answer: {correctAnswer}");
+
+            // ✅ Ensure at least a 3-step difference from previous location (Regenerate if too close)
+            if (Mathf.Abs(correctAnswer - previousLocation) > 3)
+            {
+                validEquation = true; // ✅ NOW it only exits the loop if valid
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ Invalid Equation: {correctAnswer} (Too close to {previousLocation}) — Retrying...");
+            }
+        }
+
+        correctStepsToMove = correctAnswer - Mathf.RoundToInt(previousLocation);
+        Debug.Log($"✅ Final Equation: {equationText.text} | Steps to Move: {correctStepsToMove}");
+    }
     void LogEquationData()
     {
         string result = answerMatched ? "Correct" : "Incorrect";
@@ -218,15 +266,16 @@ public class MathEquationGenerator : MonoBehaviour
 
         if (answerMatched)
         {
-            resultText.text = "Package Received";
+            resultText.text = "Collected";
             resultText.color = new Color(0.8f, 0.98f, 0f);
             audioSource.PlayOneShot(correctSound);
+            correctAnswersCount++;
             ScoreManager.Instance.IncreaseScoreOnPackageReceived();
             LogEquationData();
         }
         else
         {
-            resultText.text = "Package Missed";
+            resultText.text = "Missed";
             resultText.color = Color.red;
             SpawnExplosion(square.transform.position);
             audioSource.PlayOneShot(wrongSound);

@@ -16,12 +16,13 @@ public class UserData
 
 public class WebGLBridge : MonoBehaviour
 {
+    public bool isTrial ; 
     public static WebGLBridge Instance;
     public GameObject trialGameObject; // ✅ Assign in Inspector (UI for trial mode)
     public GameObject gameStartObject; // ✅ Assign the GameObject containing `GameStartManager`
 
     public GameStartManager gameStartManager;
-    private string baseUrl = "http://localhost:8008/api/v1/webgl-game";
+    private string baseUrl = "https://maidaan-api-server-44cf74tcjq-el.a.run.app/api/v1/webgl-game";
     private UserData userData = new UserData(); // ✅ Centralized user data storage
 
     public int baseDifficulty ; 
@@ -37,6 +38,8 @@ public class WebGLBridge : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+
     }
 
     void Start()
@@ -60,6 +63,7 @@ public class WebGLBridge : MonoBehaviour
         {
             Debug.LogError("❌ GameStartObject is not assigned in the Inspector!");
         }
+
     }
 
     public void ReceiveDataFromReact(string jsonData)
@@ -68,7 +72,7 @@ public class WebGLBridge : MonoBehaviour
         try
         {
             userData = JsonUtility.FromJson<UserData>(jsonData);
-            Debug.Log($"✅ Stored User Data -> User ID: {userData.userId}, Tournament: {userData.tournamentId}, Round: {userData.roundId}, IsTrial: {userData.isTrial}");
+            Debug.Log($"✅ Stored User Data -> User ID: {userData.userId}, Tournament: {userData.tournamentId}, Round: {userData.roundId}, IsTrial: {userData.isTrial} ,  baseDifficulty: {userData.baseDifficulty}");
             baseDifficulty = userData.baseDifficulty ; 
             // ✅ Enable/Disable trialGameObject based on isTrial
             if (trialGameObject != null)
@@ -88,6 +92,7 @@ public class WebGLBridge : MonoBehaviour
         {
             Debug.LogError("❌ JSON Parse Error: " + e.Message);
         }
+        isTrial = userData.isTrial;
     }
     IEnumerator StartGameWithDelay()
     {
