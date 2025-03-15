@@ -39,7 +39,7 @@ public class ScoreManager : MonoBehaviour
 
     public void IncreaseScoreOnPackageReceived()
     {
-        IncreaseScore(1);
+        IncreaseScore(2);
     }
 
     private void UpdateScoreText()
