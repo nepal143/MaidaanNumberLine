@@ -189,7 +189,7 @@ public class MathEquationGenerator : MonoBehaviour
             Debug.Log($"🔢 Generated: {equationText.text} | Correct Answer: {correctAnswer}");
 
             // ✅ Ensure at least a 3-step difference from previous location (Regenerate if too close)
-            if (Mathf.Abs(correctAnswer - previousLocation) > 3)
+            if (Mathf.Abs(correctAnswer - previousLocation) > 3 || correctAnswer < 0)
             {
                 validEquation = true; // ✅ NOW it only exits the loop if valid
             }

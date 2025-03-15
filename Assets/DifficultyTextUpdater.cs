@@ -4,6 +4,8 @@ using TMPro;
 public class DifficultyTextUpdater : MonoBehaviour
 {
     public TextMeshProUGUI difficultyText; // Assign in Inspector
+    public string Level4 ; 
+    public string above4 ; 
 
     void Start()
     {
@@ -20,11 +22,11 @@ public class DifficultyTextUpdater : MonoBehaviour
     {
         if (WebGLBridge.Instance.baseDifficulty == 4)
         {
-            difficultyText.text = "View the address for the incoming package";
+            difficultyText.text = Level4;
         }
         else
         {
-            difficultyText.text = "Solve this to decode the address for the incoming package";
+            difficultyText.text =  above4;
         }
     }
 }
