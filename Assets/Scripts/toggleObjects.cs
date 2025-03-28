@@ -7,7 +7,7 @@ public class ToggleObjects : MonoBehaviour
 
     public void Toggle()
     {
-        if (objectToDisable != null) objectToDisable.SetActive(false);
         if (objectToEnable != null) objectToEnable.SetActive(true);
+        if (objectToDisable != null) objectToDisable.SetActive(false);
     }
 }
